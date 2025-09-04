@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.5)
 
 
 project(FidelityFX_SC)
@@ -41,18 +41,18 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W3")
 endif()
 
-if (CMAKE_GENERATOR_PLATFORM STREQUAL x64 OR
-    CMAKE_GENERATOR_PLATFORM STREQUAL ARM64 OR
-    CMAKE_GENERATOR_PLATFORM STREQUAL ARM64EC)
-	#Set so taken by default when creating custom configs
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-endif()
+#if (CMAKE_GENERATOR_PLATFORM STREQUAL x64 OR
+#    CMAKE_GENERATOR_PLATFORM STREQUAL ARM64 OR
+#    CMAKE_GENERATOR_PLATFORM STREQUAL ARM64EC)
+#	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+#	#Set so taken by default when creating custom configs
+#endif()
+#	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 
 # Check for Visual Studio 2019's build tooling
-if(MSVC_TOOLSET_VERSION VERSION_LESS 142)
-    message(FATAL_ERROR "Cannot find MSVC toolset version 142 or greater. Please make sure Visual Studio 2019 or newer installed")
-endif()
+#if(MSVC_TOOLSET_VERSION VERSION_LESS 142)
+#    message(FATAL_ERROR "Cannot find MSVC toolset version 142 or greater. Please make sure Visual Studio 2019 or newer installed")
+#endif()
 
 # Generate the output binary in the /bin directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)

@@ -23,6 +23,7 @@
 #include <algorithm>    // for max used inside SPD CPU code.
 #include <cmath>        // for fabs, abs, sinf, sqrt, etc.
 #include <string>       // for memset
+#include <cstring>
 #include <cfloat>       // for FLT_EPSILON
 #include <FidelityFX/host/ffx_frameinterpolation.h>
 
@@ -38,6 +39,9 @@
 #include <ffx_object_management.h>
 
 #include "ffx_frameinterpolation_private.h"
+
+#define _countof(array) (sizeof(array) / sizeof(array[0]))
+#define wcscpy_s(dest, src) wcscpy(dest, src)
 
 // lists to map shader resource bindpoint name to resource identifier
 typedef struct ResourceBinding

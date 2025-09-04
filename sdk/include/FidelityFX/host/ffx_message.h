@@ -23,6 +23,7 @@
 #pragma once
 
 #include <FidelityFX/host/ffx_types.h>
+#include <FidelityFX/host/ffx_assert.h>
 
 #ifdef __cplusplus
 extern "C" {

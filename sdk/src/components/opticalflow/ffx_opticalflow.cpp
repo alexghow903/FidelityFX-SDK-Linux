@@ -23,6 +23,7 @@
 #include <algorithm>    // for max used inside SPD CPU code.
 #include <cmath>        // for fabs, abs, sinf, sqrt, etc.
 #include <string>       // for memset
+#include <cstring>
 #include <cfloat>       // for FLT_EPSILON
 #include "FidelityFX/host/ffx_opticalflow.h"
 
@@ -38,6 +39,8 @@
 #include <ffx_object_management.h>
 
 #define FFX_OPTICALFLOW_MAX_QUEUED_FRAMES 16
+#define _countof(array) (sizeof(array) / sizeof(array[0]))
+#define wcscpy_s(dest, src) wcscpy(dest, src)
 
 #include "ffx_opticalflow_private.h"
 

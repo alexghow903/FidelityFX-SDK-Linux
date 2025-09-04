@@ -24,6 +24,7 @@
 #include <cmath>        // for fabs, abs, sinf, sqrt, etc.
 #include <string.h>     // for memset
 #include <cfloat>       // for FLT_EPSILON
+#include <cwchar>
 #include <FidelityFX/host/ffx_fsr3.h>
 #include <FidelityFX/host/ffx_fsr3upscaler.h>
 #define FFX_CPU

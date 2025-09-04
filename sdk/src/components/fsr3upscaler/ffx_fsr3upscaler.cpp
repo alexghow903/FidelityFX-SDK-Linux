@@ -23,8 +23,10 @@
 #include <algorithm>    // for max used inside SPD CPU code.
 #include <cmath>        // for fabs, abs, sinf, sqrt, etc.
 #include <string.h>     // for memset
+#include <cstring>
 #include <cfloat>       // for FLT_EPSILON
 #include <FidelityFX/host/ffx_fsr3upscaler.h>
+#include <cwchar>
 
 #define FFX_CPU
 
@@ -40,6 +42,9 @@
 #include <FidelityFX/gpu/fsr3upscaler/ffx_fsr3upscaler_resources.h>
 #include <FidelityFX/gpu/fsr3upscaler/ffx_fsr3upscaler_common.h>
 #include <ffx_object_management.h>
+
+#define _countof(array) (sizeof(array) / sizeof(array[0]))
+#define wcscpy_s(dest, src) wcscpy(dest, src)
 
 // max queued frames for descriptor management
 static const uint32_t FSR3UPSCALER_MAX_QUEUED_FRAMES = 16;
