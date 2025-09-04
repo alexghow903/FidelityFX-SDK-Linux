@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.23)
 
 
 project(FidelityFX_SC)
@@ -126,13 +126,15 @@ add_executable(${PROJECT_NAME} ${sources})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 # Add external libs
-add_subdirectory(libs/agilitysdk)
-add_subdirectory(libs/dxc)
-add_subdirectory(libs/glslangValidator)
+#add_subdirectory(libs/agilitysdk)
+#add_subdirectory(libs/dxc)
+#add_subdirectory(libs/glslangValidator)
 add_subdirectory(libs/tiny-process-library)
 
 # Add link time dependencies
-target_link_libraries (${PROJECT_NAME} dxguid agilitysdk dxc glslangValidator tiny-process-library)
+#target_link_libraries (${PROJECT_NAME} dxguid agilitysdk dxc glslangValidator tiny-process-library)
+target_link_libraries (${PROJECT_NAME} tiny-process-library)
+
 target_include_directories (${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/libs/MD5
                                                    ${CMAKE_CURRENT_SOURCE_DIR}/libs/SPIRV-Reflect
                                                    ${CMAKE_CURRENT_SOURCE_DIR}/libs/tiny-process-library)
