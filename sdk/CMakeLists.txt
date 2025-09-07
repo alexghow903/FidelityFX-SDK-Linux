@@ -1,4 +1,4 @@
-# This file is part of the FidelityFX SDK.
+	# This file is part of the FidelityFX SDK.
 #
 # Copyright (C) 2024 Advanced Micro Devices, Inc.
 #

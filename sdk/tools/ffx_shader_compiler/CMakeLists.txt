@@ -26,7 +26,7 @@ cmake_minimum_required(VERSION 3.23)
 project(FidelityFX_SC)
 
 # Enable multi-threaded compilation
-add_compile_options(/MP)
+#add_compile_options(/MP)
 
 # General language options (require language standards specified)
 set(CMAKE_CXX_STANDARD 17)
@@ -37,9 +37,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if (CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall")
 endif()
-if (MSVC)
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W3")
-endif()
+#if (MSVC)
+#    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W3")
+#endif()
 
 #if (CMAKE_GENERATOR_PLATFORM STREQUAL x64 OR
 #    CMAKE_GENERATOR_PLATFORM STREQUAL ARM64 OR

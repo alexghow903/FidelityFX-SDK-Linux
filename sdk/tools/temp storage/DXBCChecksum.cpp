@@ -75,7 +75,7 @@
 **********************************************************************
 */
 
-#include <Windows.h>
+//#include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "DXBCChecksum.h"
