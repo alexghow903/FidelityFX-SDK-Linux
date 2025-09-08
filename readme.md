@@ -1,4 +1,5 @@
 <h1>THIS IS ABSOLUTELY NOT READY YET, DO NOT USE<h1>
+<h2>This project shouldn't be finished for a while<h2>
 <h2>Welcome to the AMD FidelityFX™ SDK 1.1.4</h2>
 
 ![alt text](/docs/media/fidelityfxsdk-logo-rescaled.png)
