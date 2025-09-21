@@ -23,7 +23,6 @@
 #pragma once
 
 #include "pch.hpp"
-#include "DXBCChecksum.h"
 
 std::string WCharToUTF8(const std::wstring& wstr);
 std::wstring UTF8ToWChar(const std::string& str);

@@ -22,8 +22,8 @@
 
 #pragma once
 
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
+// #define NOMINMAX
+// #define WIN32_LEAN_AND_MEAN
 // #include <Windows.h>
 //#include <atlcomcli.h>
 //#include <dxcapi.h>
@@ -44,6 +44,7 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <iconv.h>
 //#include <d3d12shader.h>
 
 #include <filesystem>

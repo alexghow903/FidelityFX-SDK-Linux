@@ -129,11 +129,12 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 #add_subdirectory(libs/agilitysdk)
 #add_subdirectory(libs/dxc)
 #add_subdirectory(libs/glslangValidator)
+find_package(Vulkan COMPONENTS glslangValidator REQUIRED)
 add_subdirectory(libs/tiny-process-library)
 
 # Add link time dependencies
 #target_link_libraries (${PROJECT_NAME} dxguid agilitysdk dxc glslangValidator tiny-process-library)
-target_link_libraries (${PROJECT_NAME} tiny-process-library)
+target_link_libraries (${PROJECT_NAME} tiny-process-library Vulkan::glslangValidator)
 
 target_include_directories (${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/libs/MD5
                                                    ${CMAKE_CURRENT_SOURCE_DIR}/libs/SPIRV-Reflect
