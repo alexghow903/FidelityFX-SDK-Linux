@@ -20,12 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-//#include "hlsl_compiler.h"
 #include "glsl_compiler.h"
 #include "utils.h"
-
-//#include <Windows.h>
-//#include <pathcch.h>
 #include <vector>
 #include <string_view>
 #include <filesystem>
@@ -33,6 +29,7 @@
 #include <locale>
 #include <stdexcept>
 #include <cmath>
+#include <cstring>
 
 // typedef wchar_t* PWSTR;
 
@@ -43,19 +40,9 @@ static const wchar_t* const APP_NAME    = L"FidelityFX-SC";
 static const wchar_t* const EXE_NAME    = L"FidelityFX_SC";
 static const wchar_t* const APP_VERSION = L"1.0.0";
 
-inline bool Contains(std::wstring_view s, std::wstring_view subS)
-{
-    return s.find(subS) != s.npos;
-}
-
 inline bool Contains(std::string_view s, std::string_view subS)
 {
     return s.find(subS) != s.npos;
-}
-
-inline bool StartsWith(std::wstring_view s, std::wstring_view subS)
-{
-    return s.substr(0, subS.size()) == subS;
 }
 
 inline bool StartsWith(std::string_view s, std::string_view subS)
@@ -63,12 +50,12 @@ inline bool StartsWith(std::string_view s, std::string_view subS)
     return s.substr(0, subS.size()) == subS;
 }
 
-inline void Split(std::wstring str, std::wstring_view token, std::vector<std::wstring>& result)
+inline void Split(std::string str, std::string_view token, std::vector<std::string>& result)
 {
     while (str.size())
     {
         int index = str.find(token);
-        if (index != std::wstring::npos)
+        if (index != std::string::npos)
         {
             result.push_back(str.substr(0, index));
             str = str.substr(index + token.size());
@@ -78,12 +65,12 @@ inline void Split(std::wstring str, std::wstring_view token, std::vector<std::ws
         else
         {
             result.push_back(str);
-            str = L"";
+            str = "";
         }
     }
 }
 
-inline bool IsNumeric(std::wstring_view s)
+inline bool IsNumeric(std::string_view s)
 {
     for (wchar_t c : s)
         if (!std::isdigit(c))
@@ -93,9 +80,9 @@ inline bool IsNumeric(std::wstring_view s)
 
 struct PermutationOption
 {
-    std::wstring              definition;
+    std::string              definition;
     std::string               definitionUtf8;
-    std::vector<std::wstring> values;
+    std::vector<std::string> values;
     uint32_t                  numBits;
     bool                      isNumeric;
     bool                      foundInShader = false;
@@ -104,15 +91,15 @@ struct PermutationOption
 struct LaunchParameters
 {
     std::vector<PermutationOption> permutationOptions;
-    std::vector<std::wstring>      compilerArgs;
-    std::wstring                   ouputPath;
-    std::wstring                   inputFile;
-    std::wstring                   shaderName;
-    std::wstring                   compiler;
-    std::wstring                   dxcDll;
-    std::wstring                   d3dDll;
-    std::wstring                   glslangExe;
-    std::wstring                   deps;
+    std::vector<std::string>      compilerArgs;
+    std::string                   ouputPath;
+    std::string                   inputFile;
+    std::string                   shaderName;
+    std::string                   compiler;
+    std::string                   dxcDll;
+    std::string                   d3dDll;
+    std::string                   glslangExe;
+    std::string                   deps;
     int                            numThreads         = 0;
     bool                           generateReflection = false;
     bool                           embedArguments     = false;
@@ -121,13 +108,13 @@ struct LaunchParameters
     bool                           debugCompile       = false;
 
     static void PrintCommandLineSyntax();
-    void        ParseCommandLine(int argCount, const wchar_t* const* args);
+    void        ParseCommandLine(int argCount, const char* const* args);
 
 private:
-    static void ParsePermutationOption(PermutationOption& outPermutationOption, const std::wstring arg);
-    static void ParseString(std::wstring& outCompilerArg, const wchar_t* arg);
-    static void ParseNumThreads(int& outNumThreads, const wchar_t* arg);
-    static void EnsureOutputPathExistsAndMakeCanonical(std::wstring & inoutOutputPath);
+    static void ParsePermutationOption(PermutationOption& outPermutationOption, const std::string arg);
+    static void ParseString(std::string& outCompilerArg, const char* arg);
+    static void ParseNumThreads(int& outNumThreads, const char* arg);
+    static void EnsureOutputPathExistsAndMakeCanonical(std::string & inoutOutputPath);
 };
 
 class Application
@@ -142,8 +129,8 @@ private:
     int                                  m_LastPermutationIndex = 0;
     std::unordered_map<int, int>         m_KeyToIndexMap;
     std::unordered_map<std::string, int> m_HashToIndexMap;
-    std::wstring                         m_ShaderFileName;
-    std::wstring                         m_ShaderName;
+    std::string                         m_ShaderFileName;
+    std::string                         m_ShaderName;
 
 public:
     Application(const LaunchParameters& params);
@@ -153,7 +140,7 @@ public:
     void Process();
 
 private:
-    static std::wstring MakeFullPath(const std::wstring& outputPath, const std::wstring& fileName);
+    static std::string MakeFullPath(const std::string& outputPath, const std::string& fileName);
     void GenerateMacroPermutations(std::deque<Permutation>& permutations);
     void GenerateMacroPermutations(Permutation current, std::deque<Permutation>& permutations, int idx, int curBit);
     void OpenSourceFile();
@@ -213,39 +200,39 @@ void LaunchParameters::PrintCommandLineSyntax()
     );
 }
 
-void LaunchParameters::ParseCommandLine(int argCount, const wchar_t* const* args)
+void LaunchParameters::ParseCommandLine(int argCount, const char* const* args)
 {
     int i = 0;
 
     // For easier debugging
-    std::wstring debugOutput = L"FidelityFX_SC.exe Output:";
-    debugOutput += L"\r\n";
+    std::string debugOutput = "FidelityFX_SC.exe Output:";
+    debugOutput += "\r\n";
     for (int count = 0; count < argCount; ++count)
     {
         // If we want to debug cmd line, don't include the debug cmd in what is spit out (since it's not needed)
-        if (!wcscmp(args[count], L"-debugcmdline"))
+        if (!strcmp(args[count], "-debugcmdline"))
             continue;
 
         debugOutput += args[count];
-        debugOutput += L" ";
+        debugOutput += " ";
     }
-    debugOutput += L"\r\n";
+    debugOutput += "\r\n";
 
     // Options
     for (; i < argCount; ++i)
     {
-        if (StartsWith(args[i], L"-D"))
+        if (StartsWith(args[i], "-D"))
         {
-            if (Contains(args[i], L"{"))
+            if (Contains(args[i], "{"))
             {
-                std::wstring allPermutationOptionValues;
+                std::string allPermutationOptionValues;
 
                 // Keep appending the next few arguments which should be the macro values until we hit the closing brace.
                 for (; i < argCount; i++)
                 {
                     allPermutationOptionValues += args[i];
 
-                    if (Contains(args[i], L"}"))
+                    if (Contains(args[i], "}"))
                         break;
                 }
 
@@ -255,47 +242,47 @@ void LaunchParameters::ParseCommandLine(int argCount, const wchar_t* const* args
             }
             else
             {
-                compilerArgs.push_back(L"-D");
-                std::wstring arg = std::wstring(args[i]);
+                compilerArgs.push_back("-D");
+                std::string arg = std::string(args[i]);
                 compilerArgs.push_back(arg.substr(2, arg.size() - 2));
             }
         }
-        else if (StartsWith(args[i], L"-debugcmdline"))
-            wprintf(debugOutput.c_str());
-        else if (StartsWith(args[i], L"-num-threads"))
+        else if (StartsWith(args[i], "-debugcmdline"))
+            printf(debugOutput.c_str());
+        else if (StartsWith(args[i], "-num-threads"))
             ParseNumThreads(numThreads, args[i]);
-        else if (StartsWith(args[i], L"-output"))
+        else if (StartsWith(args[i], "-output"))
             ParseString(ouputPath, args[i]);
-        else if (StartsWith(args[i], L"-name"))
+        else if (StartsWith(args[i], "-name"))
             ParseString(shaderName, args[i]);
-        else if (StartsWith(args[i], L"-compiler"))
+        else if (StartsWith(args[i], "-compiler"))
             ParseString(compiler, args[i]);
-        else if (StartsWith(args[i], L"-dxcdll"))
+        else if (StartsWith(args[i], "-dxcdll"))
             ParseString(dxcDll, args[i]);
-        else if (StartsWith(args[i], L"-d3ddll"))
+        else if (StartsWith(args[i], "-d3ddll"))
             ParseString(d3dDll, args[i]);
-        else if (StartsWith(args[i], L"-glslangexe"))
+        else if (StartsWith(args[i], "-glslangexe"))
             ParseString(glslangExe, args[i]);
-        else if (StartsWith(args[i], L"-deps"))
+        else if (StartsWith(args[i], "-deps"))
             ParseString(deps, args[i]);
-        else if (std::wstring(args[i]) == L"-reflection")
+        else if (std::string(args[i]) == "-reflection")
             generateReflection = true;
-        else if (std::wstring(args[i]) == L"-embed-arguments")
+        else if (std::string(args[i]) == "-embed-arguments")
             embedArguments = true;
-        else if (std::wstring(args[i]) == L"-print-arguments")
+        else if (std::string(args[i]) == "-print-arguments")
             printArguments = true;
-        else if (std::wstring(args[i]) == L"-disable-logs")
+        else if (std::string(args[i]) == "-disable-logs")
             disableLogs = true;
-        else if (std::wstring(args[i]) == L"-debugcompile")
+        else if (std::string(args[i]) == "-debugcompile")
             debugCompile = true;
-        else if (args[i][0] == L'-')
+        else if (args[i][0] == '-')
         {
             compilerArgs.push_back(args[i++]);
 
             // Attempt to parse the next arguments in case there are some parameters for the compiler args.
             for (; i < argCount; i++)
             {
-                if (args[i][0] == L'-' || i == (argCount - 1))
+                if (args[i][0] == '-' || i == (argCount - 1))
                 {
                     i--;
                     break;
@@ -310,53 +297,50 @@ void LaunchParameters::ParseCommandLine(int argCount, const wchar_t* const* args
     EnsureOutputPathExistsAndMakeCanonical(ouputPath);
 }
 
-void LaunchParameters::EnsureOutputPathExistsAndMakeCanonical(std::wstring& inoutOutputPath)
+void LaunchParameters::EnsureOutputPathExistsAndMakeCanonical(std::string& inoutOutputPath)
 {
-    std::replace(inoutOutputPath.begin(), inoutOutputPath.end(), L'/', L'\\');
-
-    PWSTR canonicalOutputPath = NULL;
-
-    // Make the path canonical, convert to long path if needed and add the trailing slash
-    HRESULT hr = PathAllocCanonicalize(inoutOutputPath.c_str(), PATHCCH_ALLOW_LONG_PATHS | PATHCCH_ENSURE_TRAILING_SLASH, &canonicalOutputPath);
-    if (hr == S_OK)
+    try
     {
-        PWSTR componentStart = NULL;
+        // 1. Normalize slashes (on Linux they should already be '/')
+        std::replace(inoutOutputPath.begin(), inoutOutputPath.end(), '\\', '/');
 
-        // Find the first character after "root" indicator -- which means a folder (path component) or file
-        hr = PathCchSkipRoot(canonicalOutputPath, &componentStart);
-        if (hr == S_OK)
+        // 2. Create directories if they don’t exist (mkdir -p equivalent)
+        fs::path outPath(inoutOutputPath);
+        if (!fs::exists(outPath))
         {
-            // Try search for the next delimiter
-            wchar_t* componentEnd = wcsstr(componentStart, L"\\");
-
-            // If the delimiter is found, make sure the folder is created
-            while (componentEnd != NULL)
-            {
-                // Temporally replace delimiter '\\' with null-terminator, create directory, and restore the delimiter
-                *componentEnd = L'\0';
-                CreateDirectoryW(canonicalOutputPath, NULL);
-                *componentEnd = L'\\';
-
-                // advance to the next component (file or folder) and try to find the next delimiter (meaning -- it's folder), and repeat the loop.
-                componentStart = componentEnd + 1;
-                componentEnd = wcsstr(componentStart, L"\\");
-            }
+            fs::create_directories(outPath);
         }
-        inoutOutputPath = canonicalOutputPath;
-        LocalFree(canonicalOutputPath);
+
+        // 3. Canonicalize to absolute path
+        //    If the directory didn’t exist before, canonicalize its parent
+        fs::path canonical;
+        if (fs::exists(outPath))
+            canonical = fs::canonical(outPath);
+        else
+            canonical = fs::weakly_canonical(outPath); // tolerate missing components
+
+        inoutOutputPath = canonical.string();
+
+        // 4. Ensure trailing slash
+        if (!inoutOutputPath.empty() && inoutOutputPath.back() != '/')
+            inoutOutputPath += '/';
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Error canonicalizing path: " << e.what() << std::endl;
     }
 }
 
-void LaunchParameters::ParsePermutationOption(PermutationOption& outPermutationOption, const std::wstring arg)
+void LaunchParameters::ParsePermutationOption(PermutationOption& outPermutationOption, const std::string arg)
 {
-    size_t equalPos                 = arg.find_first_of(L"=", 0);
+    size_t equalPos                 = arg.find_first_of("=", 0);
     outPermutationOption.definition = arg.substr(2, equalPos - 2);
-    outPermutationOption.definitionUtf8 = WCharToUTF8(outPermutationOption.definition);
+    outPermutationOption.definitionUtf8 = outPermutationOption.definition;
 
-    size_t       openBracePos      = arg.find_first_of(L"{", 0);
-    std::wstring multiOptionSubStr = arg.substr(openBracePos + 1, arg.length() - openBracePos - 2);
+    size_t       openBracePos      = arg.find_first_of("{", 0);
+    std::string multiOptionSubStr = arg.substr(openBracePos + 1, arg.length() - openBracePos - 2);
 
-    Split(multiOptionSubStr, L",", outPermutationOption.values);
+    Split(multiOptionSubStr, ",", outPermutationOption.values);
 
     outPermutationOption.isNumeric = true;
 
@@ -376,17 +360,17 @@ void LaunchParameters::ParsePermutationOption(PermutationOption& outPermutationO
     outPermutationOption.numBits = static_cast<uint32_t>(ceilf(log2f(static_cast<float>(outPermutationOption.values.size()))));
 }
 
-void LaunchParameters::ParseString(std::wstring& outCompilerArg, const wchar_t* arg)
+void LaunchParameters::ParseString(std::string& outCompilerArg, const char* arg)
 {
-    std::wstring argStr   = std::wstring(arg);
-    size_t       equalPos = argStr.find_first_of(L"=", 0);
+    std::string argStr   = std::string(arg);
+    size_t       equalPos = argStr.find_first_of("=", 0);
     outCompilerArg        = argStr.substr(equalPos + 1, argStr.length() - equalPos);
 }
 
-void LaunchParameters::ParseNumThreads(int& outNumThreads, const wchar_t* arg)
+void LaunchParameters::ParseNumThreads(int& outNumThreads, const char* arg)
 {
-    std::wstring argStr   = std::wstring(arg);
-    size_t       equalPos = argStr.find_first_of(L"=", 0);
+    std::string argStr   = std::string(arg);
+    size_t       equalPos = argStr.find_first_of("=", 0);
     outNumThreads         = std::stoi(argStr.substr(equalPos + 1, argStr.length() - equalPos));
 }
 
@@ -409,7 +393,7 @@ void Application::Process()
         m_Params.numThreads = std::thread::hardware_concurrency();
     m_Params.numThreads = std::min(m_Params.numThreads, static_cast<int>(totalPermutations - predictedDuplicates));
 
-    printf("%s\n", WCharToUTF8(m_ShaderFileName).c_str());
+    printf("%s\n", m_ShaderFileName.c_str());
 
     for (int i = 0; i < (m_Params.numThreads - 1); i++)
         threads.push_back(std::thread(&Application::ProcessPermutations, this));
@@ -422,13 +406,13 @@ void Application::Process()
     WriteShaderPermutationsHeader();
 
     // dump dependencies file if needed
-    if (m_Params.deps == L"gcc")
+    if (m_Params.deps == "gcc")
         DumpDepfileGCC();
-    else if (m_Params.deps == L"msvc")
+    else if (m_Params.deps == "msvc")
         DumpDepfileMSVC();
 
     printf("%s: Processed %zu shader permutations, found %zu duplicates (%zu found early).\n",
-           WCharToUTF8(m_ShaderFileName).c_str(),
+           m_ShaderFileName.c_str(),
            totalPermutations,
            totalPermutations - size_t(m_LastPermutationIndex),
            predictedDuplicates);
@@ -438,25 +422,25 @@ void Application::Process()
     }
 }
 
-std::wstring Application::MakeFullPath(const std::wstring & outputPath, const std::wstring & fileName)
+std::string Application::MakeFullPath(const std::string& outputPath, const std::string& fileName)
 {
-    // Append file name, optionally converting to long path again, because the outputPath alone could be normal path, but when filename is added -- it could become a long path
-    PWSTR canonicalFileNameRaw = NULL;
-    HRESULT hr = PathAllocCombine(outputPath.c_str(), fileName.c_str(), PATHCCH_ALLOW_LONG_PATHS, &canonicalFileNameRaw);
-
-    if (S_OK == hr)
+    try
     {
-        std::wstring canonicalFileName(canonicalFileNameRaw);
-        LocalFree(canonicalFileNameRaw);
-        return canonicalFileName;
+        fs::path fullPath = fs::path(outputPath) / fs::path(fileName);
+        fullPath = fs::weakly_canonical(fullPath);  // normalize even if file doesn't exist
+        return fullPath.string();
     }
-    return fileName;
+    catch (const std::exception& e)
+    {
+        // If canonicalization fails, fall back to a simple join
+        return (fs::path(outputPath) / fs::path(fileName)).string();
+    }
 }
 
 void Application::GenerateMacroPermutations(std::deque<Permutation>& permutations)
 {
     Permutation temp;
-    temp.sourcePath = WCharToUTF8(m_Params.inputFile);
+    temp.sourcePath = m_Params.inputFile;
     // put the permutation options that appear in shaders first.
     std::stable_partition(m_Params.permutationOptions.begin(), m_Params.permutationOptions.end(), [](const PermutationOption& opt) { return opt.foundInShader; });
     GenerateMacroPermutations(temp, permutations, 0, 0);
@@ -488,12 +472,12 @@ void Application::GenerateMacroPermutations(Permutation current, std::deque<Perm
         {
             if (currentOption.isNumeric)
             {
-                temp.defines.push_back(L"-D");
-                temp.defines.push_back(currentOption.definition + L"=" + currentOption.values[i]);
+                temp.defines.push_back("-D");
+                temp.defines.push_back(currentOption.definition + "=" + currentOption.values[i]);
             }
             else
             {
-                temp.defines.push_back(L"-D");
+                temp.defines.push_back("-D");
                 temp.defines.push_back(currentOption.values[i]);
             }
         }
@@ -527,11 +511,11 @@ void Application::OpenSourceFile()
 {
     size_t slashPos     = m_Params.inputFile.find_last_of('/');
 
-    if (slashPos == std::wstring::npos)
+    if (slashPos == std::string::npos)
     {
         slashPos = m_Params.inputFile.find_last_of('\\');
 
-        if (slashPos == std::wstring::npos)
+        if (slashPos == std::string::npos)
             slashPos = 0;
     }
 
@@ -546,28 +530,28 @@ void Application::OpenSourceFile()
     else
         m_ShaderName = m_Params.shaderName;
 
-    std::string dxcDll         = WCharToUTF8(m_Params.dxcDll);
-    std::string d3dDll         = WCharToUTF8(m_Params.d3dDll);
-    std::string glslangExe     = WCharToUTF8(m_Params.glslangExe);
-    std::string shaderPath     = WCharToUTF8(m_Params.inputFile);
-    std::string shaderName     = WCharToUTF8(m_ShaderName);
-    std::string shaderFileName = WCharToUTF8(m_ShaderFileName);
-    std::string outputPath     = WCharToUTF8(m_Params.ouputPath);
+    std::string dxcDll         = m_Params.dxcDll;
+    std::string d3dDll         = m_Params.d3dDll;
+    std::string glslangExe     = m_Params.glslangExe;
+    std::string shaderPath     = m_Params.inputFile;
+    std::string shaderName     = m_ShaderName;
+    std::string shaderFileName = m_ShaderFileName;
+    std::string outputPath     = m_Params.ouputPath;
 
     if (m_Params.compiler.empty())
     {
         // Check file extension
         size_t       extensionPos = m_Params.inputFile.find_last_of('.');
-        std::wstring extension    = m_Params.inputFile.substr(extensionPos + 1, m_Params.inputFile.size() - extensionPos - 1);
+        std::string extension    = m_Params.inputFile.substr(extensionPos + 1, m_Params.inputFile.size() - extensionPos - 1);
 
-        if (extension == L"glsl")
+        if (extension == "glsl")
             m_Compiler = std::unique_ptr<GLSLCompiler>(new GLSLCompiler(glslangExe, shaderPath, shaderName, shaderFileName, outputPath, m_Params.disableLogs, m_Params.debugCompile));
         else
             throw std::runtime_error("Unknown shader source file extension. Please use the -compiler option to specify which compiler to use.");
     }
     else
     {
-        if (m_Params.compiler == L"glslang")
+        if (m_Params.compiler == "glslang")
             m_Compiler = std::unique_ptr<GLSLCompiler>(new GLSLCompiler(glslangExe, shaderPath, shaderName, shaderFileName, outputPath, m_Params.disableLogs, m_Params.debugCompile));
         else
             throw std::runtime_error("Unknown compiler requested (valid options: dxc, fxc or glslang)");
@@ -577,15 +561,15 @@ void Application::OpenSourceFile()
     for (size_t i = 0; i < m_Params.compilerArgs.size(); i++)
     {
         auto& arg = m_Params.compilerArgs[i];
-        if (arg == L"-I" && i + 1 < m_Params.compilerArgs.size())
+        if (arg == "-I" && i + 1 < m_Params.compilerArgs.size())
         {
             includeSearchPaths.emplace_back(m_Params.compilerArgs[++i]);
         }
-        else if (StartsWith(arg, L"-I "))
+        else if (StartsWith(arg, "-I "))
         {
             includeSearchPaths.emplace_back(arg.substr(3));
         }
-        else if (StartsWith(arg, L"-I"))
+        else if (StartsWith(arg, "-I"))
         {
             includeSearchPaths.emplace_back(arg.substr(2));
         }
@@ -700,11 +684,11 @@ void Application::CompilePermutation(Permutation& permutation)
     // ------------------------------------------------------------------------------------------------
     std::vector<std::string> args = {};
 
-    for (const std::wstring& arg : permutation.defines)
-        args.push_back(WCharToUTF8(arg));
+    for (const std::string& arg : permutation.defines)
+        args.push_back(arg);
 
-    for (const std::wstring& arg : m_Params.compilerArgs)
-        args.push_back(WCharToUTF8(arg));
+    for (const std::string& arg : m_Params.compilerArgs)
+        args.push_back((arg));
 
     // ------------------------------------------------------------------------------------------------
     // Print compiler args if requested.
@@ -763,14 +747,14 @@ void Application::CompilePermutation(Permutation& permutation)
 
 void Application::WriteShaderBinaryHeader(Permutation& permutation)
 {
-    std::string  permutationName = WCharToUTF8(m_ShaderName) + "_" + permutation.hashDigest;
-    std::wstring headerFileName  = UTF8ToWChar(permutationName) + L".h";
+    std::string  permutationName = m_ShaderName + "_" + permutation.hashDigest;
+    std::string headerFileName  = permutationName + ".h";
 
     FILE* fp = NULL;
 
-    std::wstring outputPath = MakeFullPath(m_Params.ouputPath, headerFileName);
+    std::string outputPath = MakeFullPath(m_Params.ouputPath, headerFileName);
 
-    _wfopen(&fp, outputPath.c_str(), L"wb");
+    fp = fopen(outputPath.c_str(), "wb");
 
     // ------------------------------------------------------------------------------------------------
     // Write autogen comment
@@ -785,7 +769,7 @@ void Application::WriteShaderBinaryHeader(Permutation& permutation)
     {
         for (int i = 0; i < m_Params.compilerArgs.size(); i++)
         {
-            std::string arg = WCharToUTF8(m_Params.compilerArgs[i]);
+            std::string arg = m_Params.compilerArgs[i];
 
             if (arg[0] == '-')
             {
@@ -806,7 +790,7 @@ void Application::WriteShaderBinaryHeader(Permutation& permutation)
     {
         for (int32_t i = 0; i < permutation.defines.size(); i++)
         {
-            std::string arg = WCharToUTF8(permutation.defines[i]);
+            std::string arg = permutation.defines[i];
 
             if (arg[0] == '-')
             {
@@ -862,7 +846,7 @@ void Application::PrintPermutationArguments(Permutation& permutation)
     {
         for (int i = 0; i < m_Params.compilerArgs.size(); i++)
         {
-            std::string arg = WCharToUTF8(m_Params.compilerArgs[i]);
+            std::string arg = m_Params.compilerArgs[i];
 
             printf("%s", arg.c_str());
 
@@ -878,7 +862,7 @@ void Application::PrintPermutationArguments(Permutation& permutation)
     {
         for (int32_t i = 0; i < permutation.defines.size(); i++)
         {
-            std::string arg = WCharToUTF8(permutation.defines[i]);
+            std::string arg = permutation.defines[i];
 
             printf("%s", arg.c_str());
 
@@ -887,7 +871,7 @@ void Application::PrintPermutationArguments(Permutation& permutation)
         }
     }
 
-    std::string outputPath = WCharToUTF8(m_Params.ouputPath);
+    std::string outputPath = m_Params.ouputPath;
 
     printf("-output=%s", outputPath.c_str());
 
@@ -901,13 +885,13 @@ void Application::WriteShaderPermutationsHeader()
     if (m_UniquePermutations.empty())
         throw std::runtime_error("No shader permutations generated due to errors!");
 
-    std::string shaderName = WCharToUTF8(m_ShaderName);
+    std::string shaderName = m_ShaderName;
 
     FILE* fp = NULL;
 
-    std::wstring outputPath = MakeFullPath(m_Params.ouputPath, m_ShaderName + L"_permutations.h");
+    std::string outputPath = MakeFullPath(m_Params.ouputPath, m_ShaderName + "_permutations.h");
 
-    _wfopen(&fp, outputPath.c_str(), L"wb");
+    fp = fopen(outputPath.c_str(), "wb");
 
     // ------------------------------------------------------------------------------------------------
     // Write header includes
@@ -930,7 +914,7 @@ void Application::WriteShaderPermutationsHeader()
 
         if (!option.isNumeric)
         {
-            std::string enumName = WCharToUTF8(option.definition);
+            std::string enumName = option.definition;
 
             fprintf(fp, "typedef enum %s {\n", enumName.c_str());
 
@@ -938,7 +922,7 @@ void Application::WriteShaderPermutationsHeader()
             {
                 std::transform(enumName.begin(), enumName.end(), enumName.begin(), ::toupper);
 
-                std::string valueString = WCharToUTF8(option.values[j]);
+                std::string valueString = option.values[j];
                 std::transform(valueString.begin(), valueString.end(), valueString.begin(), ::toupper);
                 valueString = "OPT_" + enumName + "_" + valueString + " = " + std::to_string(j);
 
@@ -965,7 +949,7 @@ void Application::WriteShaderPermutationsHeader()
     {
         const PermutationOption& option = m_Params.permutationOptions[i];
 
-        std::string enumName = WCharToUTF8(option.definition);
+        std::string enumName = option.definition;
 
         fprintf(fp, "        uint32_t %s : %i;\n", enumName.c_str(), option.numBits);
     }
@@ -1042,16 +1026,16 @@ void Application::DumpDepfileGCC()
         totalDependencies.insert(permutation.dependencies.begin(), permutation.dependencies.end());
     }
 
-    std::string shaderName = WCharToUTF8(m_ShaderName);
+    std::string shaderName = m_ShaderName;
 
     FILE* fp = NULL;
 
-    std::wstring outputFilename = MakeFullPath(m_Params.ouputPath, m_ShaderName + L"_permutations.h");
-    std::wstring depfilePath = outputFilename + L".d";
+    std::string outputFilename = MakeFullPath(m_Params.ouputPath, m_ShaderName + "_permutations.h");
+    std::string depfilePath = outputFilename + ".d";
 
-    _wfopen_s(&fp, depfilePath.c_str(), L"wb");
+    fp = fopen(depfilePath.c_str(), "wb");
 
-    fs::path output = WCharToUTF8(outputFilename);
+    fs::path output = outputFilename;
 
     output = fs::absolute(output);
 
@@ -1072,7 +1056,7 @@ void Application::DumpDepfileMSVC()
     printf("MSVC depfile not implemented yet.\n");
 }
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
     try
     {

@@ -21,10 +21,10 @@
 # THE SOFTWARE.
 
 add_library(glslangValidator INTERFACE)
-target_include_directories(dxc INTERFACE BEFORE "inc/")
+# target_include_directories(dxc INTERFACE BEFORE "inc/")
 
 set(glslangValidator_binaries
-    ${CMAKE_CURRENT_SOURCE_DIR}/bin/x64/glslangValidator.exe)
+    /usr/bin/glslangValidator)
 
 copyTargetCommand("${glslangValidator_binaries}" ${CMAKE_HOME_DIRECTORY}/bin/Debug copied_glslangValidator_bin_debug)
 copyTargetCommand("${glslangValidator_binaries}" ${CMAKE_HOME_DIRECTORY}/bin/Release copied_glslangValidator_bin_release)
