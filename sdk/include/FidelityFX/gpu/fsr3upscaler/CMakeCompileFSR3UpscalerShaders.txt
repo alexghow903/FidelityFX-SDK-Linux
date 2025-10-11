@@ -52,7 +52,7 @@ endif()
 file(GLOB FSR3UPSCALER_SHADERS
     "shaders/fsr3upscaler/*.${FSR3UPSCALER_SHADER_EXT}")
 
-# compile all the shaders	
+# compile all the shaders
 compile_shaders_with_depfile(
     "${FFX_SC_EXECUTABLE}"
     "${FSR3UPSCALER_BASE_ARGS}" "${FSR3UPSCALER_API_BASE_ARGS}" "${FSR3UPSCALER_PERMUTATION_ARGS}" "${FSR3UPSCALER_INCLUDE_ARGS}"

@@ -404,9 +404,9 @@ file(GLOB_RECURSE PUBLIC_SOURCE
     "${FFX_HOST_BACKENDS_PATH}/vk/*.h")
 
 if (FFX_BUILD_AS_DLL)
-    add_library(ffx_backend_vk_${FFX_PLATFORM_NAME} SHARED ${PRIVATE_SOURCE} ${PUBLIC_SOURCE} ${PRIVATE_SHADERS} ${PUBLIC_SHADERS})
+    add_library(ffx_backend_vk SHARED ${PRIVATE_SOURCE} ${PUBLIC_SOURCE} ${PRIVATE_SHADERS} ${PUBLIC_SHADERS})
 else()
-    add_library(ffx_backend_vk_${FFX_PLATFORM_NAME} STATIC ${PRIVATE_SOURCE} ${PUBLIC_SOURCE} ${PRIVATE_SHADERS} ${PUBLIC_SHADERS})
+    add_library(ffx_backend_vk STATIC ${PRIVATE_SOURCE} ${PUBLIC_SOURCE} ${PRIVATE_SHADERS} ${PUBLIC_SHADERS})
 endif()
 
 # vk backend source
@@ -417,15 +417,15 @@ source_group("public_shaders"  FILES ${PUBLIC_SHADERS})
 
 get_filename_component(FFX_PASS_SHADER_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/../shaders/vk ABSOLUTE)
 
-target_include_directories(ffx_backend_vk_${FFX_PLATFORM_NAME} PUBLIC ${FFX_INCLUDE_PATH})
-target_include_directories(ffx_backend_vk_${FFX_PLATFORM_NAME} PUBLIC ${FFX_LIB_PATH})
-target_include_directories(ffx_backend_vk_${FFX_PLATFORM_NAME} PUBLIC ${FFX_PASS_SHADER_OUTPUT_PATH})
-target_include_directories(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE ${FFX_COMPONENTS_PATH})
-target_include_directories(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE ${FFX_SHARED_PATH})
-target_include_directories(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE "${FFX_SRC_BACKENDS_PATH}/shared")
-target_include_directories(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE ${FFX_PASS_SHADER_OUTPUT_PATH})
+target_include_directories(ffx_backend_vk PUBLIC ${FFX_INCLUDE_PATH})
+target_include_directories(ffx_backend_vk PUBLIC ${FFX_LIB_PATH})
+target_include_directories(ffx_backend_vk PUBLIC ${FFX_PASS_SHADER_OUTPUT_PATH})
+target_include_directories(ffx_backend_vk PRIVATE ${FFX_COMPONENTS_PATH})
+target_include_directories(ffx_backend_vk PRIVATE ${FFX_SHARED_PATH})
+target_include_directories(ffx_backend_vk PRIVATE "${FFX_SRC_BACKENDS_PATH}/shared")
+target_include_directories(ffx_backend_vk PRIVATE ${FFX_PASS_SHADER_OUTPUT_PATH})
 
-target_link_libraries(ffx_backend_vk_${FFX_PLATFORM_NAME} "Vulkan::Vulkan")
+target_link_libraries(ffx_backend_vk "Vulkan::Vulkan")
 
 set_source_files_properties(${PRIVATE_SHADERS} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${PUBLIC_SHADERS} PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -433,11 +433,11 @@ set_source_files_properties(${PUBLIC_SHADERS} PROPERTIES HEADER_FILE_ONLY TRUE)
 file(MAKE_DIRECTORY ${FFX_PASS_SHADER_OUTPUT_PATH})
 
 if (FFX_AUTO_COMPILE_SHADERS)
-    set(FFX_SC_DEPENDENT_TARGET ffx_backend_vk_${FFX_PLATFORM_NAME})
+    set(FFX_SC_DEPENDENT_TARGET ffx_backend_vk)
 else()
-    set(FFX_SC_DEPENDENT_TARGET ffx_backend_vk_shaders_${FFX_PLATFORM_NAME})
+    set(FFX_SC_DEPENDENT_TARGET ffx_backend_vk_shaders)
     add_custom_target(${FFX_SC_DEPENDENT_TARGET})
-    #add_dependencies(ffx_backend_vk_${FFX_PLATFORM_NAME} ${FFX_SC_DEPENDENT_TARGET})
+    #add_dependencies(ffx_backend_vk ${FFX_SC_DEPENDENT_TARGET})
 endif()
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20.0")
@@ -446,110 +446,110 @@ endif()
 
 # add pass shaders for all the components
 if (FFX_FSR1 OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_FSR1)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_FSR1)
     include (CMakeShadersFSR1.txt)
 endif()
 
 if (FFX_FSR2 OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_FSR2)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_FSR2)
 	include (CMakeShadersFSR2.txt)
 endif()
 
 if (FFX_FSR3 OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_FSR3)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_FSR3)
 endif()
 
 if (FFX_FSR3UPSCALER OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_FSR3UPSCALER)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_FSR3UPSCALER)
 	include (CMakeShadersFSR3Upscaler.txt)
 endif()
 
 if (FFX_FI OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_FI)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_FI)
 	include (CMakeShadersFrameinterpolation.txt)
 endif()
 
 if (FFX_OF OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_OF)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_OF)
 	include (CMakeShadersOpticalflow.txt)
 endif()
 
 if (FFX_SPD OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_SPD)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_SPD)
 	include (CMakeShadersSPD.txt)
 endif()
 
 if (FFX_CACAO OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_CACAO)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_CACAO)
 	include (CMakeShadersCACAO.txt)
 endif()
 
 if (FFX_LPM OR FFX_ALL)
-target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_LPM)
+target_compile_definitions(ffx_backend_vk PRIVATE FFX_LPM)
 	include (CMakeShadersLPM.txt)
 endif()
 
 if (FFX_BLUR OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_BLUR)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_BLUR)
 	include (CMakeShadersBlur.txt)
 endif()
 
 if (FFX_VRS OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_VRS)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_VRS)
 	include (CMakeShadersVRS.txt)
 endif()
 
 if (FFX_CAS OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_CAS)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_CAS)
 	include (CMakeShadersCAS.txt)
 endif()
 
 if (FFX_DOF OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_DOF)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_DOF)
 	include (CMakeShadersDOF.txt)
 endif()
 
 if (FFX_LENS OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_LENS)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_LENS)
 	include (CMakeShadersLENS.txt)
 endif()
 
 if (FFX_PARALLEL_SORT OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_PARALLEL_SORT)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_PARALLEL_SORT)
 	include (CMakeShadersParallelSort.txt)
 endif()
 
 if (FFX_DENOISER OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_DENOISER)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_DENOISER)
 	include (CMakeShadersDenoiser.txt)
 endif()
 
 if (FFX_CLASSIFIER OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_CLASSIFIER)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_CLASSIFIER)
 	include (CMakeShadersClassifier.txt)
 endif()
 
 if (FFX_SSSR OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_SSSR)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_SSSR)
 	include (CMakeShadersSSSR.txt)
 endif()
 
 if (FFX_BREADCRUMBS OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_BREADCRUMBS)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_BREADCRUMBS)
 endif()
 
 if (FFX_BRIXELIZER OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_BRIXELIZER)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_BRIXELIZER)
 	include (CMakeShadersBrixelizer.txt)
 endif()
 
 if (FFX_BRIXELIZER_GI OR FFX_ALL)
-	target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_BRIXELIZER_GI)
+	target_compile_definitions(ffx_backend_vk PRIVATE FFX_BRIXELIZER_GI)
 	include (CMakeShadersBrixelizerGI.txt)
 endif()
 
 if (FFX_CLASSIFIER OR FFX_ALL)
-    target_compile_definitions(ffx_backend_vk_${FFX_PLATFORM_NAME} PRIVATE FFX_CLASSIFIER)
+    target_compile_definitions(ffx_backend_vk PRIVATE FFX_CLASSIFIER)
     include (CMakeShadersClassifier.txt)
 endif()
 
@@ -557,8 +557,8 @@ add_custom_target(ffx_shader_permutations_vk DEPENDS ${FFX_SC_PERMUTATION_OUTPUT
 add_dependencies(${FFX_SC_DEPENDENT_TARGET} ffx_shader_permutations_vk)
 
 # Make sure shader builds are a dependency of the backend
-add_dependencies(ffx_backend_vk_${FFX_PLATFORM_NAME} ffx_shader_permutations_vk)
+add_dependencies(ffx_backend_vk ffx_shader_permutations_vk)
 
 # Add to solution folder.
-set_target_properties(ffx_backend_vk_${FFX_PLATFORM_NAME} PROPERTIES FOLDER Backends)
+set_target_properties(ffx_backend_vk PROPERTIES FOLDER Backends)
 set_target_properties(ffx_shader_permutations_vk PROPERTIES FOLDER Backends)

@@ -22,9 +22,9 @@
 
 @REM regenerates the header files containing the shaderblobs for the ui composition blit
 @REM only needs to be run when the shader is changed
-..\..\..\..\tools\ffx_shader_compiler\libs\glslangValidator\bin\x64\glslangValidator.exe -o FrameInterpolationSwapchainUiCompositionVS.h -DFFX_UI_PREMUL=0 -Os --vn g_mainVS -S vert -e main --target-env vulkan1.2 FrameInterpolationSwapchainUiCompositionVS.glsl 
-..\..\..\..\tools\ffx_shader_compiler\libs\glslangValidator\bin\x64\glslangValidator.exe -o FrameInterpolationSwapchainUiCompositionPS.h -DFFX_UI_PREMUL=0 -Os --vn g_mainPS -S frag -e main --target-env vulkan1.2 FrameInterpolationSwapchainUiCompositionPS.glsl 
-..\..\..\..\tools\ffx_shader_compiler\libs\glslangValidator\bin\x64\glslangValidator.exe -o FrameInterpolationSwapchainUiCompositionPremulVS.h -DFFX_UI_PREMUL=1 -Os --vn g_mainPremulVS -S vert -e main --target-env vulkan1.2 FrameInterpolationSwapchainUiCompositionVS.glsl 
-..\..\..\..\tools\ffx_shader_compiler\libs\glslangValidator\bin\x64\glslangValidator.exe -o FrameInterpolationSwapchainUiCompositionPremulPS.h -DFFX_UI_PREMUL=1 -Os --vn g_mainPremulPS -S frag -e main --target-env vulkan1.2 FrameInterpolationSwapchainUiCompositionPS.glsl 
-..\..\..\..\tools\ffx_shader_compiler\libs\glslangValidator\bin\x64\glslangValidator.exe -o FrameInterpolationSwapchainDebugPacingVS.h -Os --vn g_mainDebugPacingVS -S vert -e main --target-env vulkan1.2 FrameInterpolationSwapchainDebugPacingVS.glsl 
-..\..\..\..\tools\ffx_shader_compiler\libs\glslangValidator\bin\x64\glslangValidator.exe -o FrameInterpolationSwapchainDebugPacingPS.h -Os --vn g_mainDebugPacingPS -S frag -e main --target-env vulkan1.2 FrameInterpolationSwapchainDebugPacingPS.glsl 
+..\..\..\..\tools\binary_store/glslangValidator -o FrameInterpolationSwapchainUiCompositionVS.h -DFFX_UI_PREMUL=0 -Os --vn g_mainVS -S vert -e main --target-env vulkan1.2 FrameInterpolationSwapchainUiCompositionVS.glsl 
+..\..\..\..\tools\binary_store/glslangValidator -o FrameInterpolationSwapchainUiCompositionPS.h -DFFX_UI_PREMUL=0 -Os --vn g_mainPS -S frag -e main --target-env vulkan1.2 FrameInterpolationSwapchainUiCompositionPS.glsl 
+..\..\..\..\tools\binary_store/glslangValidator -o FrameInterpolationSwapchainUiCompositionPremulVS.h -DFFX_UI_PREMUL=1 -Os --vn g_mainPremulVS -S vert -e main --target-env vulkan1.2 FrameInterpolationSwapchainUiCompositionVS.glsl 
+..\..\..\..\tools\binary_store/glslangValidator -o FrameInterpolationSwapchainUiCompositionPremulPS.h -DFFX_UI_PREMUL=1 -Os --vn g_mainPremulPS -S frag -e main --target-env vulkan1.2 FrameInterpolationSwapchainUiCompositionPS.glsl 
+..\..\..\..\tools\binary_store/glslangValidator -o FrameInterpolationSwapchainDebugPacingVS.h -Os --vn g_mainDebugPacingVS -S vert -e main --target-env vulkan1.2 FrameInterpolationSwapchainDebugPacingVS.glsl 
+..\..\..\..\tools\binary_store/glslangValidator -o FrameInterpolationSwapchainDebugPacingPS.h -Os --vn g_mainDebugPacingPS -S frag -e main --target-env vulkan1.2 FrameInterpolationSwapchainDebugPacingPS.glsl 

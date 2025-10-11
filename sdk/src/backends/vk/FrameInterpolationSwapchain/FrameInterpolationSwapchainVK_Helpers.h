@@ -27,8 +27,8 @@
 #include <FidelityFX/host/ffx_assert.h>
 #include <FidelityFX/host/backends/vk/ffx_vk.h>
 
-#include <Windows.h>
-#include <synchapi.h>
+// #include <Windows.h>
+// #include <synchapi.h>
 
 
 void waitForPerformanceCount(const int64_t targetCount);

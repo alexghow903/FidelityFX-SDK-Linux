@@ -109,7 +109,7 @@ add_compile_definitions(UNICODE)
 add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 
 # Setup common variables
-set(FFX_SC_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/tools/binary_store/FidelityFX_SC.exe)
+set(FFX_SC_EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/tools/binary_store/FidelityFX_SC)
 set(FFX_INCLUDE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(FFX_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs)
 set(FFX_BIN_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin/ffx_sdk)

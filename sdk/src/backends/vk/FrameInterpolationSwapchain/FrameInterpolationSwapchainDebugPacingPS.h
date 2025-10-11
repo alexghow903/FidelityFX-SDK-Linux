@@ -1,4 +1,4 @@
-	// This file is part of the FidelityFX SDK.
+// This file is part of the FidelityFX SDK.
 //
 // Copyright (C) 2024 Advanced Micro Devices, Inc.
 // 
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-	// 1111.12.0
+// 1111.12.0
 	 #pragma once
 const uint32_t g_mainDebugPacingPS[] = {
 	0x07230203,0x00010500,0x0008000b,0x0000003c,0x00000000,0x00020011,0x00000001,0x0006000b,

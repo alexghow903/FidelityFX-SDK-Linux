@@ -36,9 +36,9 @@
 
 //#pragma comment(lib, "pathcch.lib")
 
-static const wchar_t* const APP_NAME    = L"FidelityFX-SC";
-static const wchar_t* const EXE_NAME    = L"FidelityFX_SC";
-static const wchar_t* const APP_VERSION = L"1.0.0";
+static const char* const APP_NAME    = "FidelityFX-SC";
+static const char* const EXE_NAME    = "FidelityFX_SC";
+static const char* const APP_VERSION = "1.0.0";
 
 inline bool Contains(std::string_view s, std::string_view subS)
 {
@@ -72,7 +72,7 @@ inline void Split(std::string str, std::string_view token, std::vector<std::stri
 
 inline bool IsNumeric(std::string_view s)
 {
-    for (wchar_t c : s)
+    for (char c : s)
         if (!std::isdigit(c))
             return false;
     return !s.empty();
@@ -155,48 +155,44 @@ private:
 
 void LaunchParameters::PrintCommandLineSyntax()
 {
-    wprintf(L"%ls %ls\n", APP_NAME, APP_VERSION);
-    wprintf(L"Command line syntax:\n");
-    wprintf(L"  %ls.exe [Options] <InputFile>\n", EXE_NAME);
-    wprintf(
-        L"Options:\n"
-        L"<CompilerArgs>\n"
-        L"  A list of arguments accepted by the target compiler, separated by spaces.\n"
-        L"-output=<Path>\n"
-        L"  Path to where the shader permutations should be output to.\n"
-        L"-D<Name>\n"
-        L"  Define a macro that is defined in all shader permutations.\n"
-        L"-D<Name>={<Value1>, <Value2>, <Value3> ...}\n"
-        L"  Declare a shader option that will generate permutations with the macro defined using the given values.\n"
-        L"  Use a '-' to define a permutation where no macro is defined.\n"
-        L"-num-threads=<Num>\n"
-        L"  Number of threads to use for generating shaders.\n"
-        L"  Sets to the max number of threads available on the current CPU by default.\n"
-        L"-name=<Name>\n"
-        L"  The name used for prefixing variables in the generated headers.\n"
-        L"  Uses the file name by default.\n"
-        L"-reflection\n"
-        L"  Generate header containing reflection data.\n"
-        L"-embed-arguments\n"
-        L"  Write the compile arguments used for each permutation into their respective headers.\n"
-        L"-print-arguments\n"
-        L"  Print the compile arguments used for each permuations.\n"
-        L"-disable-logs\n"
-        L"  Prevent logging of compile warnings and errors.\n"
-        L"-compiler=<Compiler>\n"
-        L"  Select the compiler to generate permutations from (dxc, gdk.scarlett.x64, gdk.xboxone.x64, fxc, or glslang).\n"
-        L"-dxcdll=<DXC DLL Path>\n"
-        L"  Path to the dxccompiler dll to use.\n"
-        L"-d3ddll=<D3D DLL Path>\n"
-        L"  Path to the d3dcompiler dll to use.\n"
-        L"-glslangexe=<glslangValidator.exe Path>\n"
-        L"  Path to the glslangValidator executable to use.\n"
-        L"-deps=<Format>\n"
-        L"  Dump depfile which recorded the include file dependencies in format of (gcc or msvc).\n"
-        L"-debugcompile\n"
-        L"  Compile shader with debug information.\n"
-        L"-debugcmdline\n"
-        L"  Print all the input arguments.\n"
+    printf("%ls %ls\n", APP_NAME, APP_VERSION);
+    printf("Command line syntax:\n");
+    printf("  %ls [Options] <InputFile>\n", EXE_NAME);
+    printf(
+        "Options:\n"
+        "<CompilerArgs>\n"
+        "  A list of arguments accepted by the target compiler, separated by spaces.\n"
+        "-output=<Path>\n"
+        "  Path to where the shader permutations should be output to.\n"
+        "-D<Name>\n"
+        "  Define a macro that is defined in all shader permutations.\n"
+        "-D<Name>={<Value1>, <Value2>, <Value3> ...}\n"
+        "  Declare a shader option that will generate permutations with the macro defined using the given values.\n"
+        "  Use a '-' to define a permutation where no macro is defined.\n"
+        "-num-threads=<Num>\n"
+        "  Number of threads to use for generating shaders.\n"
+        "  Sets to the max number of threads available on the current CPU by default.\n"
+        "-name=<Name>\n"
+        "  The name used for prefixing variables in the generated headers.\n"
+        "  Uses the file name by default.\n"
+        "-reflection\n"
+        "  Generate header containing reflection data.\n"
+        "-embed-arguments\n"
+        "  Write the compile arguments used for each permutation into their respective headers.\n"
+        "-print-arguments\n"
+        "  Print the compile arguments used for each permuations.\n"
+        "-disable-logs\n"
+        "  Prevent logging of compile warnings and errors.\n"
+        "-compiler=<Compiler>\n"
+        "  Select the compiler to generate permutations from (dxc, gdk.scarlett.x64, gdk.xboxone.x64, fxc, or glslang).\n"
+        "-glslangexe=<glslangValidator Path>\n"
+        "  Path to the glslangValidator executable to use.\n"
+        "-deps=<Format>\n"
+        "  Dump depfile which recorded the include file dependencies in format of (gcc or msvc).\n"
+        "-debugcompile\n"
+        "  Compile shader with debug information.\n"
+        "-debugcmdline\n"
+        "  Print all the input arguments.\n"
     );
 }
 
@@ -205,7 +201,7 @@ void LaunchParameters::ParseCommandLine(int argCount, const char* const* args)
     int i = 0;
 
     // For easier debugging
-    std::string debugOutput = "FidelityFX_SC.exe Output:";
+    std::string debugOutput = "FidelityFX_SC Output:";
     debugOutput += "\r\n";
     for (int count = 0; count < argCount; ++count)
     {
