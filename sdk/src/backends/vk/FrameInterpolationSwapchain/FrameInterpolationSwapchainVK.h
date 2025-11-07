@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
+ 
 #pragma once
 
 #ifdef _WIN32
@@ -30,6 +30,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <cstring>
 
 #include "FrameInterpolationSwapchainVK_Helpers.h"
 
@@ -41,11 +42,13 @@
 //   - On Windows, critical section and events are faster than their std counterparts
 //   - using Win32 threads to set the priorities
 //   - this needs to be ported to standard C++ or other platform if necessary
-#include <Windows.h>
+// #include <Windows.h>
 
 #define FFX_FRAME_INTERPOLATION_SWAP_CHAIN_VERSION                     1
 #define FFX_FRAME_INTERPOLATION_SWAP_CHAIN_MAX_BUFFER_COUNT            6
 #define FFX_FRAME_INTERPOLATION_SWAP_CHAIN_MAX_ACQUIRE_SEMAPHORE_COUNT 8
+typedef unsigned long DWORD;
+
 
 //////////////////////////////////////////////
 /// Vulkan API overridden functions
@@ -112,7 +115,7 @@ typedef struct PacingData
     uint64_t replacementBufferSemaphoreSignal;
     uint64_t numFramesSentForPresentationBase;
     uint32_t numFramesToPresent;
-    UINT64   currentFrameID;
+    uint64_t   currentFrameID;
 
     typedef enum FrameType
     {
@@ -135,7 +138,7 @@ typedef struct PacingData
 
     void invalidate()
     {
-        memset(this, 0, sizeof(PacingData));
+        std::memset(this, 0, sizeof(PacingData));
     }
 } PacingData;
 
@@ -334,7 +337,7 @@ private:
     bool previousFrameWasInterpolated   = false;
     bool drawDebugPacingLines           = false;
 
-    UINT64        currentFrameID = 0;
+    uint64_t        currentFrameID = 0;
 
     LARGE_INTEGER lastTimestamp = {};
     LARGE_INTEGER currTimestamp = {};

@@ -45,7 +45,7 @@ endif()
 file(GLOB FRAMEINTERPOLATION_SHADERS
     "shaders/frameinterpolation/*.${FRAMEINTERPOLATION_SHADER_EXT}")
 
-# compile all the shaders	
+# compile all the shaders
 compile_shaders_with_depfile(
     "${FFX_SC_EXECUTABLE}"
     "${FRAMEINTERPOLATION_BASE_ARGS}" "${FRAMEINTERPOLATION_API_BASE_ARGS}" "${FRAMEINTERPOLATION_PERMUTATION_ARGS}" "${FRAMEINTERPOLATION_INCLUDE_ARGS}"

@@ -26,6 +26,11 @@
 
 #include <FidelityFX/host/ffx_assert.h>
 #include <FidelityFX/host/backends/vk/ffx_vk.h>
+#include <iostream>
+
+#ifndef _countof
+#define _countof(arr) (sizeof(arr) / sizeof((arr)[0]))
+#endif
 
 // #include <Windows.h>
 // #include <synchapi.h>

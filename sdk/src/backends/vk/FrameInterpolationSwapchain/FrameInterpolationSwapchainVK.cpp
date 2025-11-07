@@ -27,6 +27,7 @@
 #include "FrameInterpolationSwapchainVK_DebugPacing.h"
 
 #include <FidelityFX/host/ffx_assert.h>
+#include <unistd.h>
 
 ///////////////////////////////////////////////////////////////////
 //                    MODES EXPLAINED
@@ -223,7 +224,7 @@ struct DebugNameSetter
     {
         constexpr size_t cBufferSize = 64;
         char             finalName[cBufferSize];
-        snprintf(finalName, cBufferSize, name, i);
+        printf(finalName, cBufferSize, name, i);
         return setDebugName(pObject, type, finalName);
     }
 };
@@ -354,12 +355,12 @@ bool waitForSemaphoreValue(VkDevice device, VkSemaphore semaphore, uint64_t valu
     return false;
 }
 
-inline void SafeCloseHandle(HANDLE& handle)
+inline void SafeCloseHandle(int& fd)
 {
-    if (handle)
+    if (fd >= 0)
     {
-        CloseHandle(handle);
-        handle = NULL;
+        close(fd);   // standard POSIX close()
+        fd = -1;
     }
 }
 
@@ -935,7 +936,7 @@ VkResult compositeSwapChainFrame(FrameinterpolationPresentInfo* pPresenter,
     }
 }
 
-DWORD WINAPI copyAndPresent_presenterThread(LPVOID pParam)
+DWORD copyAndPresent_presenterThread(void* pParam)
 {
     FrameinterpolationPresentInfo* presenter = static_cast<FrameinterpolationPresentInfo*>(pParam);
 
@@ -1080,7 +1081,7 @@ DWORD WINAPI copyAndPresent_presenterThread(LPVOID pParam)
 }
 
 
-DWORD WINAPI composeAndPresent_presenterThread(LPVOID pParam)
+DWORD composeAndPresent_presenterThread(void* pParam)
 {
     FrameinterpolationPresentInfo* presenter = static_cast<FrameinterpolationPresentInfo*>(pParam);
 
@@ -1198,7 +1199,7 @@ DWORD WINAPI composeAndPresent_presenterThread(LPVOID pParam)
     return 0;
 }
 
-DWORD WINAPI interpolationThread(LPVOID param)
+DWORD interpolationThread(void* param)
 {
     FrameinterpolationPresentInfo* presenter = static_cast<FrameinterpolationPresentInfo*>(param);
 

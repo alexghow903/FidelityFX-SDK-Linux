@@ -28,6 +28,8 @@
 #include "FrameInterpolationSwapchainDebugPacingVS.h"
 #include "FrameInterpolationSwapchainDebugPacingPS.h"
 
+
+
 constexpr uint32_t c_debugPacingRingBufferSize = 4;
 
 VkDevice              s_debugPacingDevice                 = VK_NULL_HANDLE;
