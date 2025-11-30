@@ -29,6 +29,7 @@
 #include <FidelityFX/gpu/fsr3/ffx_fsr3_resources.h>
 
 #include <stdlib.h>
+#include <cstdio>
 
 bool ffxProvider_FrameGeneration::CanProvide(uint64_t type) const
 {
@@ -77,7 +78,7 @@ struct InternalFgContext
 uint64_t ffxProvider_FrameGeneration::GetId() const
 {
     // FG, version from header
-    return 0xF600'0000ui64 << 32u | (FFX_SDK_MAKE_VERSION(FFX_FRAMEINTERPOLATION_VERSION_MAJOR, FFX_FRAMEINTERPOLATION_VERSION_MINOR, FFX_FRAMEINTERPOLATION_VERSION_PATCH) & 0xFFFF'FFFF);
+    return 0xF600'0000ull << 32u | (FFX_SDK_MAKE_VERSION(FFX_FRAMEINTERPOLATION_VERSION_MAJOR, FFX_FRAMEINTERPOLATION_VERSION_MINOR, FFX_FRAMEINTERPOLATION_VERSION_PATCH) & 0xFFFF'FFFF);
 }
 
 const char* ffxProvider_FrameGeneration::GetVersionName() const
@@ -146,11 +147,11 @@ ffxReturnCode_t ffxProvider_FrameGeneration::CreateContext(ffxContext* context, 
             TRY2(ffxFrameInterpolationGetSharedResourceDescriptions(&internal_context->fiContext, &fiResourceDescs));
 
             internal_context->sharedResoureFrameToggle = 0;
-            wchar_t Name[256] = {};
+            char Name[256] = {};
             for (FfxUInt32 i = 0; i < 2; i++)
             {
                 FfxCreateResourceDescription dilD = fiResourceDescs.dilatedDepth;
-                swprintf(Name, 255, L"%s%d", fiResourceDescs.dilatedDepth.name, i);
+                printf(Name, 255, "%s%d", fiResourceDescs.dilatedDepth.name, i);
                 dilD.name = Name;
                 TRY2(internal_context->backendInterfaceShared.fpCreateResource(
                     &internal_context->backendInterfaceShared,
@@ -159,7 +160,7 @@ ffxReturnCode_t ffxProvider_FrameGeneration::CreateContext(ffxContext* context, 
                     &internal_context->sharedResources[FFX_FSR3_RESOURCE_IDENTIFIER_DILATED_DEPTH_0 + (i * FFX_FSR3_RESOURCE_IDENTIFIER_UPSCALED_COUNT)]));
 
                 FfxCreateResourceDescription dilMVs = fiResourceDescs.dilatedMotionVectors;
-                swprintf(Name, 255, L"%s%d", fiResourceDescs.dilatedMotionVectors.name, i);
+                printf(Name, 255, "%s%d", fiResourceDescs.dilatedMotionVectors.name, i);
                 dilMVs.name = Name;
                 TRY2(internal_context->backendInterfaceShared.fpCreateResource(
                     &internal_context->backendInterfaceShared,
@@ -168,7 +169,7 @@ ffxReturnCode_t ffxProvider_FrameGeneration::CreateContext(ffxContext* context, 
                     &internal_context->sharedResources[FFX_FSR3_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS_0 + (i * FFX_FSR3_RESOURCE_IDENTIFIER_UPSCALED_COUNT)]));
 
                 FfxCreateResourceDescription recND = fiResourceDescs.reconstructedPrevNearestDepth;
-                swprintf(Name, 255, L"%s%d", fiResourceDescs.reconstructedPrevNearestDepth.name, i);
+                printf(Name, 255, "%s%d", fiResourceDescs.reconstructedPrevNearestDepth.name, i);
                 recND.name = Name;
                 TRY2(internal_context->backendInterfaceShared.fpCreateResource(
                     &internal_context->backendInterfaceShared,

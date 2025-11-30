@@ -31,7 +31,9 @@ void waitForPerformanceCount(const int64_t targetCount)
     int64_t currentCount = 0;
     do
     {
-        QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&currentCount));
+        timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        currentCount = static_cast<uint64_t>(ts.tv_sec) * 1'000'000'000ULL + ts.tv_nsec;
     } while (currentCount < targetCount);
 }
 

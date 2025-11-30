@@ -40,12 +40,12 @@ void ffxSetPrintMessageCallback(ffxMessageCallback callback, uint32_t debugLevel
     return;
 }
 
-void ffxPrintMessage(uint32_t type, const wchar_t* message)
+void ffxPrintMessage(uint32_t type, const char* message)
 {
 #ifdef _WIN32
     if (!s_messageCallback) {
         // Format the message string
-        wchar_t buffer[512];
+        char buffer[512];
         if (type == FFX_MESSAGE_TYPE_ERROR) {
             swprintf_s(buffer, 512, L"FSR_API_DEBUG_ERROR: %ls\n", message);
         }

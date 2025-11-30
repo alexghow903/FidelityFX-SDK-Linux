@@ -27,6 +27,8 @@
 #endif  // _WIN32
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
+// #include <vulkan/vulkan_ext.h>
 
 #include <atomic>
 #include <cstdint>
@@ -200,12 +202,22 @@ struct FrameinterpolationPresentInfo
     uint64_t realPresentCount = 0;
 
     // using win32 threads to set the priorities
-    HANDLE           presenterThreadHandle         = NULL;
-    CRITICAL_SECTION scheduledFrameCriticalSection = {};
-    HANDLE           presentEvent                  = NULL;
-    HANDLE           interpolationEvent            = NULL;
-    HANDLE           pacerEvent                    = NULL;
-    CRITICAL_SECTION swapchainCriticalSection;
+    pthread_t       presenterThreadHandle         = NULL;
+    pthread_mutex_t scheduledFrameCriticalSection = {};
+    void*           presentEvent                  = NULL;
+    pthread_mutex_t presentEventMutex;
+    pthread_cond_t  presentEventCond;
+    bool            presentEventSignaled = false;
+    void*           interpolationEvent            = NULL;
+    pthread_mutex_t interpolationEventMutex;
+    pthread_cond_t  interpolationEventCond;
+    bool            interpolationEventSignaled = false;
+    void*           pacerEvent                    = NULL;
+    pthread_cond_t  pacerEventCond;
+    pthread_mutex_t pacerEventMutex;
+    bool            pacerEventSignaled = false;
+    pthread_mutex_t scheduledFrameMutex;
+    pthread_mutex_t swapchainCriticalSection;
 
     FGSwapchainCompositionMode compositionMode = FGSwapchainCompositionMode::eNone;
     volatile bool              resetTimer      = false;
@@ -339,15 +351,15 @@ private:
 
     uint64_t        currentFrameID = 0;
 
-    LARGE_INTEGER lastTimestamp = {};
-    LARGE_INTEGER currTimestamp = {};
+    uint64_t lastTimestamp = {};
+    uint64_t currTimestamp = {};
     double        perfCountFreq = 0.0;
 
     uint64_t framesSentForPresentation = 0;
 
-    CRITICAL_SECTION criticalSection             = {};
-    CRITICAL_SECTION criticalSectionUpdateConfig = {};
-    HANDLE           interpolationThreadHandle   = NULL;
+    pthread_mutex_t criticalSection             = {};
+    pthread_mutex_t criticalSectionUpdateConfig = {};
+    pthread_t       interpolationThreadHandle   = NULL;
 
     FfxPresentCallbackFunc         presentCallback                = nullptr;
     void*                          presentCallbackContext         = nullptr;

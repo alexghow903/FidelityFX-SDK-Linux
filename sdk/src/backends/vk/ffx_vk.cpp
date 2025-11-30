@@ -34,6 +34,8 @@
 #endif  // _WIN32
 
 #include <vulkan/vulkan.h>
+#include <cstring>
+#include <cmath>
 
 // prototypes for functions in the interface
 FfxVersionNumber       GetSDKVersionVK(FfxInterface* backendInterface);
@@ -1101,51 +1103,51 @@ void copyResourceState(BackendContext_VK::Resource* backendResource, const FfxRe
     }
 }
 
-#ifdef _WIN32
-void ConvertUTF8ToUTF16(const char* inputName, wchar_t* outputBuffer, size_t outputLen)
-{
-    if (MultiByteToWideChar(CP_UTF8, 0, inputName, -1, outputBuffer, static_cast<int>(outputLen)) == 0)
-    {
-        memset(outputBuffer, 0, outputLen * sizeof(wchar_t));
-    }
-}
-void ConvertUTF16ToUTF8(const wchar_t* inputName, char* outputBuffer, size_t outputLen)
-{
-    if (WideCharToMultiByte(CP_UTF8, 0, inputName, -1, outputBuffer, static_cast<int>(outputLen * sizeof(char)), NULL, NULL) == 0)
-    {
-        memset(outputBuffer, 0, outputLen * sizeof(char));
-    }
-}
-#else
-void ConvertUTF8ToUTF16(const char* inputName, wchar_t* outputBuffer, size_t outputLen)
-{
-    memset(outputBuffer, 0, outputLen * sizeof(wchar_t));
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-    wcscpy_s(outputBuffer, outputLen, converter.from_bytes(inputName).c_str());
-}
-void ConvertUTF16ToUTF8(const wchar_t* inputName, char* outputBuffer, size_t outputLen)
-{
-    memset(outputBuffer, 0, outputLen * sizeof(char));
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-    strcpy_s(outputBuffer, outputLen, converter.to_bytes(inputName).c_str());
-}
-#endif  // _WIN32
+// #ifdef _WIN32
+// void ConvertUTF8ToUTF16(const char* inputName, wchar_t* outputBuffer, size_t outputLen)
+// {
+//     if (MultiByteToWideChar(CP_UTF8, 0, inputName, -1, outputBuffer, static_cast<int>(outputLen)) == 0)
+//     {
+//         memset(outputBuffer, 0, outputLen * sizeof(wchar_t));
+//     }
+// }
+// void ConvertUTF16ToUTF8(const wchar_t* inputName, char* outputBuffer, size_t outputLen)
+// {
+//     if (WideCharToMultiByte(CP_UTF8, 0, inputName, -1, outputBuffer, static_cast<int>(outputLen * sizeof(char)), NULL, NULL) == 0)
+//     {
+//         memset(outputBuffer, 0, outputLen * sizeof(char));
+//     }
+// }
+// #else
+// void ConvertUTF8ToUTF16(const char* inputName, wchar_t* outputBuffer, size_t outputLen)
+// {
+//     memset(outputBuffer, 0, outputLen * sizeof(wchar_t));
+//     std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+//     wcscpy_s(outputBuffer, outputLen, converter.from_bytes(inputName).c_str());
+// }
+// void ConvertUTF16ToUTF8(const wchar_t* inputName, char* outputBuffer, size_t outputLen)
+// {
+//     memset(outputBuffer, 0, outputLen * sizeof(char));
+//     std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+//     strcpy_s(outputBuffer, outputLen, converter.to_bytes(inputName).c_str());
+// }
+// #endif  // _WIN32
 
-void beginMarkerVK(BackendContext_VK* backendContext, VkCommandBuffer commandBuffer, const wchar_t* label)
+void beginMarkerVK(BackendContext_VK* backendContext, VkCommandBuffer commandBuffer, const char* label)
 {
     if(backendContext->vkFunctionTable.vkCmdBeginDebugUtilsLabelEXT == nullptr)
     {
         return;
     }
 
-    constexpr size_t strLen = 64;
-    char strLabel[strLen];
-    ConvertUTF16ToUTF8(label, strLabel, strLen);
+    // constexpr size_t strLen = 64;
+    // char strLabel[strLen];
+    // ConvertUTF16ToUTF8(label, strLabel, strLen);
 
     VkDebugUtilsLabelEXT debugLabel = {};
     debugLabel.sType                = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
     debugLabel.pNext                = nullptr;
-    debugLabel.pLabelName           = strLabel;
+    debugLabel.pLabelName           = label;
 
     // not to saturated red
     debugLabel.color[0] = 1.0f;
@@ -2479,7 +2481,7 @@ FfxErrorCode CreateResourceVK(
         backendInterface->fpCreateResource(backendInterface, &uploadDesc, effectContextId, &copySrc);
 
         // setup the upload job
-        FfxGpuJobDescription copyJob  = { FFX_GPU_JOB_COPY, L"Resource Initialization Copy" };
+        FfxGpuJobDescription copyJob  = { FFX_GPU_JOB_COPY, "Resource Initialization Copy" };
         copyJob.copyJobDescriptor.src = copySrc;
         copyJob.copyJobDescriptor.dst = *outResource;
         copyJob.copyJobDescriptor.srcOffset = 0;
@@ -3500,7 +3502,8 @@ FfxErrorCode CreatePipelineVK(FfxInterface* backendInterface,
 
             outPipeline->srvTextureBindings[bindingIndex].slotIndex  = slotIndex;
             outPipeline->srvTextureBindings[bindingIndex].arrayIndex = arrayIndex;
-            ConvertUTF8ToUTF16(shaderBlob.boundSRVTextureNames[srvIndex], outPipeline->srvTextureBindings[bindingIndex].name, FFX_RESOURCE_NAME_SIZE);
+            // ConvertUTF8ToUTF16(shaderBlob.boundSRVTextureNames[srvIndex], outPipeline->srvTextureBindings[bindingIndex].name, FFX_RESOURCE_NAME_SIZE);
+            strcpy(outPipeline->srvTextureBindings[bindingIndex].name, shaderBlob.boundSRVTextureNames[srvIndex]);
         }
     }
 
@@ -3520,7 +3523,8 @@ FfxErrorCode CreatePipelineVK(FfxInterface* backendInterface,
 
             outPipeline->uavTextureBindings[bindingIndex].slotIndex  = slotIndex;
             outPipeline->uavTextureBindings[bindingIndex].arrayIndex = arrayIndex;
-            ConvertUTF8ToUTF16(shaderBlob.boundUAVTextureNames[uavIndex], outPipeline->uavTextureBindings[bindingIndex].name, FFX_RESOURCE_NAME_SIZE);
+            // ConvertUTF8ToUTF16(shaderBlob.boundUAVTextureNames[uavIndex], outPipeline->uavTextureBindings[bindingIndex].name, FFX_RESOURCE_NAME_SIZE);
+            strcpy(outPipeline->uavTextureBindings[bindingIndex].name, shaderBlob.boundUAVTextureNames[uavIndex]);
         }
     }
 
@@ -3545,7 +3549,8 @@ FfxErrorCode CreatePipelineVK(FfxInterface* backendInterface,
 
             outPipeline->srvBufferBindings[bindingIndex].slotIndex  = slotIndex;
             outPipeline->srvBufferBindings[bindingIndex].arrayIndex = arrayIndex;
-            ConvertUTF8ToUTF16(shaderBlob.boundSRVBufferNames[srvIndex], outPipeline->srvBufferBindings[bindingIndex].name, FFX_RESOURCE_NAME_SIZE);
+            // ConvertUTF8ToUTF16(shaderBlob.boundSRVBufferNames[srvIndex], outPipeline->srvBufferBindings[bindingIndex].name, FFX_RESOURCE_NAME_SIZE);
+            strcpy(outPipeline->srvBufferBindings[bindingIndex].name, shaderBlob.boundSRVBufferNames[srvIndex]);
         }
     }
 
@@ -3565,7 +3570,8 @@ FfxErrorCode CreatePipelineVK(FfxInterface* backendInterface,
 
             outPipeline->uavBufferBindings[bindingIndex].slotIndex  = slotIndex;
             outPipeline->uavBufferBindings[bindingIndex].arrayIndex = arrayIndex;
-            ConvertUTF8ToUTF16(shaderBlob.boundUAVBufferNames[uavIndex], outPipeline->uavBufferBindings[bindingIndex].name, FFX_RESOURCE_NAME_SIZE);
+            // ConvertUTF8ToUTF16(shaderBlob.boundUAVBufferNames[uavIndex], outPipeline->uavBufferBindings[bindingIndex].name, FFX_RESOURCE_NAME_SIZE);
+            strcpy(outPipeline->uavBufferBindings[bindingIndex].name, shaderBlob.boundUAVBufferNames[uavIndex]);
         }
     }
 
@@ -3576,7 +3582,8 @@ FfxErrorCode CreatePipelineVK(FfxInterface* backendInterface,
     {
         outPipeline->constantBufferBindings[cbIndex].slotIndex  = shaderBlob.boundConstantBuffers[cbIndex];
         outPipeline->constantBufferBindings[cbIndex].arrayIndex = 1;
-        ConvertUTF8ToUTF16(shaderBlob.boundConstantBufferNames[cbIndex], outPipeline->constantBufferBindings[cbIndex].name, FFX_RESOURCE_NAME_SIZE);
+        // ConvertUTF8ToUTF16(shaderBlob.boundConstantBufferNames[cbIndex], outPipeline->constantBufferBindings[cbIndex].name, FFX_RESOURCE_NAME_SIZE);
+        strcpy(outPipeline->constantBufferBindings[cbIndex].name, shaderBlob.boundConstantBufferNames[cbIndex]);
     }
 
     outPipeline->constCount = shaderBlob.cbvCount;
@@ -3650,7 +3657,7 @@ FfxErrorCode CreatePipelineVK(FfxInterface* backendInterface,
     outPipeline->pipeline = reinterpret_cast<FfxPipeline>(computePipeline);
 
     // Setup the pipeline name
-    wcscpy_s(outPipeline->name, pipelineDescription->name);
+    strcpy(outPipeline->name, pipelineDescription->name);
 
     return FFX_OK;
 }

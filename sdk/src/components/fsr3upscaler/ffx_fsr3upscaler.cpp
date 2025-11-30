@@ -44,7 +44,7 @@
 #include <ffx_object_management.h>
 
 #define _countof(array) (sizeof(array) / sizeof(array[0]))
-#define wcscpy_s(dest, src) wcscpy(dest, src)
+// #define strcpy(dest, src) wcscpy(dest, src)
 
 // max queued frames for descriptor management
 static const uint32_t FSR3UPSCALER_MAX_QUEUED_FRAMES = 16;
@@ -55,76 +55,76 @@ static const uint32_t FSR3UPSCALER_MAX_QUEUED_FRAMES = 16;
 typedef struct ResourceBinding
 {
     uint32_t    index;
-    wchar_t     name[64];
+    char     name[64];
 }ResourceBinding;
 
 static const ResourceBinding srvTextureBindingTable[] =
 {
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_COLOR,                              L"r_input_color_jittered"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_OPAQUE_ONLY,                        L"r_input_opaque_only"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_MOTION_VECTORS,                     L"r_input_motion_vectors"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_DEPTH,                              L"r_input_depth" },
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_EXPOSURE,                           L"r_input_exposure"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FRAME_INFO,                               L"r_frame_info"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_REACTIVE_MASK,                      L"r_reactive_mask"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_TRANSPARENCY_AND_COMPOSITION_MASK,  L"r_transparency_and_composition_mask"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,     L"r_reconstructed_previous_nearest_depth"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS,                   L"r_dilated_motion_vectors"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_DEPTH,                            L"r_dilated_depth"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR,                  L"r_internal_upscaled_color"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION,                             L"r_accumulation"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_HISTORY,                             L"r_luma_history" },
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RCAS_INPUT,                               L"r_rcas_input"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LANCZOS_LUT,                              L"r_lanczos_lut"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS,                                 L"r_spd_mips"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,                   L"r_dilated_reactive_masks"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_NEW_LOCKS,                                L"r_new_locks"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH,                           L"r_farthest_depth"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH_MIP1,                      L"r_farthest_depth_mip1"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SHADING_CHANGE,                           L"r_shading_change"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_COLOR,                              "r_input_color_jittered"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_OPAQUE_ONLY,                        "r_input_opaque_only"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_MOTION_VECTORS,                     "r_input_motion_vectors"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_DEPTH,                              "r_input_depth" },
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_EXPOSURE,                           "r_input_exposure"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FRAME_INFO,                               "r_frame_info"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_REACTIVE_MASK,                      "r_reactive_mask"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INPUT_TRANSPARENCY_AND_COMPOSITION_MASK,  "r_transparency_and_composition_mask"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,     "r_reconstructed_previous_nearest_depth"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS,                   "r_dilated_motion_vectors"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_DEPTH,                            "r_dilated_depth"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR,                  "r_internal_upscaled_color"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION,                             "r_accumulation"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_HISTORY,                             "r_luma_history" },
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RCAS_INPUT,                               "r_rcas_input"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LANCZOS_LUT,                              "r_lanczos_lut"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS,                                 "r_spd_mips"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,                   "r_dilated_reactive_masks"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_NEW_LOCKS,                                "r_new_locks"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH,                           "r_farthest_depth"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH_MIP1,                      "r_farthest_depth_mip1"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SHADING_CHANGE,                           "r_shading_change"},
 
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_CURRENT_LUMA,                             L"r_current_luma"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_PREVIOUS_LUMA,                            L"r_previous_luma"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_INSTABILITY,                         L"r_luma_instability"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_CURRENT_LUMA,                             "r_current_luma"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_PREVIOUS_LUMA,                            "r_previous_luma"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_INSTABILITY,                         "r_luma_instability"},
 };
 
 static const ResourceBinding uavTextureBindingTable[] =
 {
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,     L"rw_reconstructed_previous_nearest_depth"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS,                   L"rw_dilated_motion_vectors"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_DEPTH,                            L"rw_dilated_depth"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR,                  L"rw_internal_upscaled_color"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION,                             L"rw_accumulation"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_HISTORY,                             L"rw_luma_history"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_UPSCALED_OUTPUT,                          L"rw_upscaled_output"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,                   L"rw_dilated_reactive_masks"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FRAME_INFO,                               L"rw_frame_info"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_ATOMIC_COUNT,                         L"rw_spd_global_atomic"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_NEW_LOCKS,                                L"rw_new_locks"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_AUTOREACTIVE,                             L"rw_output_autoreactive"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SHADING_CHANGE,                           L"rw_shading_change"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH,                           L"rw_farthest_depth"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH_MIP1,                      L"rw_farthest_depth_mip1"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,     "rw_reconstructed_previous_nearest_depth"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS,                   "rw_dilated_motion_vectors"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_DEPTH,                            "rw_dilated_depth"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR,                  "rw_internal_upscaled_color"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION,                             "rw_accumulation"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_HISTORY,                             "rw_luma_history"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_UPSCALED_OUTPUT,                          "rw_upscaled_output"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,                   "rw_dilated_reactive_masks"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FRAME_INFO,                               "rw_frame_info"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_ATOMIC_COUNT,                         "rw_spd_global_atomic"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_NEW_LOCKS,                                "rw_new_locks"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_AUTOREACTIVE,                             "rw_output_autoreactive"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SHADING_CHANGE,                           "rw_shading_change"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH,                           "rw_farthest_depth"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH_MIP1,                      "rw_farthest_depth_mip1"},
 
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_CURRENT_LUMA,                             L"rw_current_luma"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_INSTABILITY,                         L"rw_luma_instability"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_CURRENT_LUMA,                             "rw_current_luma"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_INSTABILITY,                         "rw_luma_instability"},
 
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_0,                         L"rw_spd_mip0"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_1,                         L"rw_spd_mip1"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_2,                         L"rw_spd_mip2"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_3,                         L"rw_spd_mip3"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_4,                         L"rw_spd_mip4"},
-    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_5,                         L"rw_spd_mip5"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_0,                         "rw_spd_mip0"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_1,                         "rw_spd_mip1"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_2,                         "rw_spd_mip2"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_3,                         "rw_spd_mip3"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_4,                         "rw_spd_mip4"},
+    {FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_5,                         "rw_spd_mip5"},
 
 
 };
 
 static const ResourceBinding constantBufferBindingTable[] =
 {
-    {FFX_FSR3UPSCALER_CONSTANTBUFFER_IDENTIFIER_FSR3UPSCALER,   L"cbFSR3Upscaler"},
-    {FFX_FSR3UPSCALER_CONSTANTBUFFER_IDENTIFIER_SPD,            L"cbSPD"},
-    {FFX_FSR3UPSCALER_CONSTANTBUFFER_IDENTIFIER_RCAS,           L"cbRCAS"},
-    {FFX_FSR3UPSCALER_CONSTANTBUFFER_IDENTIFIER_GENREACTIVE,    L"cbGenerateReactive"},
+    {FFX_FSR3UPSCALER_CONSTANTBUFFER_IDENTIFIER_FSR3UPSCALER,   "cbFSR3Upscaler"},
+    {FFX_FSR3UPSCALER_CONSTANTBUFFER_IDENTIFIER_SPD,            "cbSPD"},
+    {FFX_FSR3UPSCALER_CONSTANTBUFFER_IDENTIFIER_RCAS,           "cbRCAS"},
+    {FFX_FSR3UPSCALER_CONSTANTBUFFER_IDENTIFIER_GENREACTIVE,    "cbGenerateReactive"},
 };
 
 typedef struct Fsr3UpscalerRcasConstants {
@@ -190,77 +190,77 @@ static void fsr3upscalerDebugCheckDispatch(FfxFsr3UpscalerContext_Private* conte
 {
     if (params->commandList == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"commandList is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "commandList is nul");
     }
 
     if (params->color.resource == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"color resource is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "color resource is nul");
     }
 
     if (params->depth.resource == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"depth resource is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "depth resource is nul");
     }
 
     if (params->motionVectors.resource == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"motionVectors resource is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "motionVectors resource is nul");
     }
 
     if (params->exposure.resource != nullptr)
     {
         if ((context->contextDescription.flags & FFX_FSR3UPSCALER_ENABLE_AUTO_EXPOSURE) == FFX_FSR3UPSCALER_ENABLE_AUTO_EXPOSURE)
         {
-            FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"exposure resource provided, however auto exposure flag is present");
+            FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "exposure resource provided, however auto exposure flag is present");
         }
     }
 
     if (params->output.resource == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"output resource is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "output resource is nul");
     }
 
     if (fabs(params->jitterOffset.x) > 1.0f || fabs(params->jitterOffset.y) > 1.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"jitterOffset contains value outside of expected range [-1.0, 1.0]");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "jitterOffset contains value outside of expected range [-1.0, 1.0]");
     }
 
     if ((params->motionVectorScale.x > (float)context->contextDescription.maxRenderSize.width) ||
         (params->motionVectorScale.y > (float)context->contextDescription.maxRenderSize.height))
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"motionVectorScale contains scale value greater than maxRenderSize");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "motionVectorScale contains scale value greater than maxRenderSize");
     }
     if ((params->motionVectorScale.x == 0.0f) ||
         (params->motionVectorScale.y == 0.0f))
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"motionVectorScale contains zero scale value");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "motionVectorScale contains zero scale value");
     }
 
     if ((params->renderSize.width > context->contextDescription.maxRenderSize.width) ||
         (params->renderSize.height > context->contextDescription.maxRenderSize.height))
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"renderSize is greater than context maxRenderSize");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "renderSize is greater than context maxRenderSize");
     }
     if ((params->renderSize.width == 0) ||
         (params->renderSize.height == 0))
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"renderSize contains zero dimension");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "renderSize contains zero dimension");
     }
 
     if (params->sharpness < 0.0f || params->sharpness > 1.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"sharpness contains value outside of expected range [0.0, 1.0]");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "sharpness contains value outside of expected range [0.0, 1.0]");
     }
 
     if (params->frameTimeDelta < 1.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"frameTimeDelta is less than 1.0f - this value should be milliseconds (~16.6f for 60fps)");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "frameTimeDelta is less than 1.0f - this value should be milliseconds (~16.6f for 60fps)");
     }
 
     if (params->preExposure == 0.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"preExposure provided as 0.0f which is invalid");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "preExposure provided as 0.0f which is invalid");
     }
 
     bool infiniteDepth = (context->contextDescription.flags & FFX_FSR3UPSCALER_ENABLE_DEPTH_INFINITE) == FFX_FSR3UPSCALER_ENABLE_DEPTH_INFINITE;
@@ -271,20 +271,20 @@ static void fsr3upscalerDebugCheckDispatch(FfxFsr3UpscalerContext_Private* conte
         if (params->cameraNear < params->cameraFar)
         {
             FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                L"FFX_FSR3UPSCALER_ENABLE_DEPTH_INVERTED flag is present yet cameraNear is less than cameraFar");
+                "FFX_FSR3UPSCALER_ENABLE_DEPTH_INVERTED flag is present yet cameraNear is less than cameraFar");
         }
         if (infiniteDepth)
         {
             if (params->cameraNear != FLT_MAX)
             {
                 FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                    L"FFX_FSR3UPSCALER_ENABLE_DEPTH_INFINITE and FFX_FSR3UPSCALER_ENABLE_DEPTH_INVERTED present, yet cameraNear != FLT_MAX");
+                    "FFX_FSR3UPSCALER_ENABLE_DEPTH_INFINITE and FFX_FSR3UPSCALER_ENABLE_DEPTH_INVERTED present, yet cameraNear != FLT_MAX");
             }
         }
         if (params->cameraFar < 0.075f)
         {
             FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                L"FFX_FSR3UPSCALER_ENABLE_DEPTH_INVERTED present, cameraFar value is very low which may result in depth separation artefacting");
+                "FFX_FSR3UPSCALER_ENABLE_DEPTH_INVERTED present, cameraFar value is very low which may result in depth separation artefacting");
         }
     }
     else
@@ -292,30 +292,30 @@ static void fsr3upscalerDebugCheckDispatch(FfxFsr3UpscalerContext_Private* conte
         if (params->cameraNear > params->cameraFar)
         {
             FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                L"cameraNear is greater than cameraFar in non-inverted-depth context");
+                "cameraNear is greater than cameraFar in non-inverted-depth context");
         }
         if (infiniteDepth)
         {
             if (params->cameraFar != FLT_MAX)
             {
                 FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                    L"FFX_FSR3UPSCALER_ENABLE_DEPTH_INFINITE present, yet cameraFar != FLT_MAX");
+                    "FFX_FSR3UPSCALER_ENABLE_DEPTH_INFINITE present, yet cameraFar != FLT_MAX");
             }
         }
         if (params->cameraNear < 0.075f)
         {
             FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                L"cameraNear value is very low which may result in depth separation artefacting");
+                "cameraNear value is very low which may result in depth separation artefacting");
         }
     }
 
     if (params->cameraFovAngleVertical <= 0.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"cameraFovAngleVertical is 0.0f - this value should be > 0.0f");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "cameraFovAngleVertical is 0.0f - this value should be > 0.0f");
     }
     if (params->cameraFovAngleVertical > FFX_PI)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"cameraFovAngleVertical is greater than 180 degrees/PI");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "cameraFovAngleVertical is greater than 180 degrees/PI");
     }
 }
 
@@ -326,7 +326,7 @@ static FfxErrorCode patchResourceBindings(FfxPipelineState* inoutPipeline)
         int32_t mapIndex = 0;
         for (mapIndex = 0; mapIndex < _countof(srvTextureBindingTable); ++mapIndex)
         {
-            if (0 == wcscmp(srvTextureBindingTable[mapIndex].name, inoutPipeline->srvTextureBindings[srvIndex].name))
+            if (0 == strcmp(srvTextureBindingTable[mapIndex].name, inoutPipeline->srvTextureBindings[srvIndex].name))
                 break;
         }
         if (mapIndex == _countof(srvTextureBindingTable))
@@ -340,7 +340,7 @@ static FfxErrorCode patchResourceBindings(FfxPipelineState* inoutPipeline)
         int32_t mapIndex = 0;
         for (mapIndex = 0; mapIndex < _countof(uavTextureBindingTable); ++mapIndex)
         {
-            if (0 == wcscmp(uavTextureBindingTable[mapIndex].name, inoutPipeline->uavTextureBindings[uavIndex].name))
+            if (0 == strcmp(uavTextureBindingTable[mapIndex].name, inoutPipeline->uavTextureBindings[uavIndex].name))
                 break;
         }
         if (mapIndex == _countof(uavTextureBindingTable))
@@ -354,7 +354,7 @@ static FfxErrorCode patchResourceBindings(FfxPipelineState* inoutPipeline)
         int32_t mapIndex = 0;
         for (mapIndex = 0; mapIndex < _countof(constantBufferBindingTable); ++mapIndex)
         {
-            if (0 == wcscmp(constantBufferBindingTable[mapIndex].name, inoutPipeline->constantBufferBindings[cbIndex].name))
+            if (0 == strcmp(constantBufferBindingTable[mapIndex].name, inoutPipeline->constantBufferBindings[cbIndex].name))
                 break;
         }
         if (mapIndex == _countof(constantBufferBindingTable))
@@ -432,57 +432,57 @@ static FfxErrorCode createPipelineStates(FfxFsr3UpscalerContext_Private* context
     uint32_t contextFlags = context->contextDescription.flags;
 
     // Set up pipeline descriptor (basically RootSignature and binding)
-    wcscpy_s(pipelineDescription.name, L"FSR3-LUMA-PYRAMID");
+    strcpy(pipelineDescription.name, "FSR3-LUMA-PYRAMID");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_LUMA_PYRAMID,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_LUMA_PYRAMID, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineLumaPyramid));
-    wcscpy_s(pipelineDescription.name, L"FSR3-RCAS");
+    strcpy(pipelineDescription.name, "FSR3-RCAS");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_RCAS,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_RCAS, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineRCAS));
-    wcscpy_s(pipelineDescription.name, L"FSR3-GEN_REACTIVE");
+    strcpy(pipelineDescription.name, "FSR3-GEN_REACTIVE");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_GENERATE_REACTIVE,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_GENERATE_REACTIVE, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineGenerateReactive));
 
     pipelineDescription.rootConstantBufferCount = 1;
 
-    wcscpy_s(pipelineDescription.name, L"FSR3-PREPARE-INPUTS");
+    strcpy(pipelineDescription.name, "FSR3-PREPARE-INPUTS");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_PREPARE_INPUTS,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_PREPARE_INPUTS, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelinePrepareInputs));
 
-    wcscpy_s(pipelineDescription.name, L"FSR3-PREPARE-REACTIVITY");
+    strcpy(pipelineDescription.name, "FSR3-PREPARE-REACTIVITY");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_PREPARE_REACTIVITY,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_PREPARE_REACTIVITY, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelinePrepareReactivity));
     
-    wcscpy_s(pipelineDescription.name, L"FSR3-SHADING-CHANGE");
+    strcpy(pipelineDescription.name, "FSR3-SHADING-CHANGE");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_SHADING_CHANGE,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_SHADING_CHANGE, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineShadingChange));
     
-    wcscpy_s(pipelineDescription.name, L"FSR3-ACCUMULATE");
+    strcpy(pipelineDescription.name, "FSR3-ACCUMULATE");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_ACCUMULATE,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_ACCUMULATE, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineAccumulate));
     
-    wcscpy_s(pipelineDescription.name, L"FSR3-ACCUM_SHARP");
+    strcpy(pipelineDescription.name, "FSR3-ACCUM_SHARP");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_ACCUMULATE_SHARPEN,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_ACCUMULATE_SHARPEN, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineAccumulateSharpen));
 
-    wcscpy_s(pipelineDescription.name, L"FSR3-SHADING-CHANGE-PYRAMID");
+    strcpy(pipelineDescription.name, "FSR3-SHADING-CHANGE-PYRAMID");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_SHADING_CHANGE_PYRAMID,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_SHADING_CHANGE_PYRAMID, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineShadingChangePyramid));
 
-    wcscpy_s(pipelineDescription.name, L"FSR3-LUMA-INSTABILITY");
+    strcpy(pipelineDescription.name, "FSR3-LUMA-INSTABILITY");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_LUMA_INSTABILITY,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_LUMA_INSTABILITY, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineLumaInstability));
 
-    wcscpy_s(pipelineDescription.name, L"FSR3-DEBUG-VIEW");
+    strcpy(pipelineDescription.name, "FSR3-DEBUG-VIEW");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR3UPSCALER, FFX_FSR3UPSCALER_PASS_DEBUG_VIEW,
         getPipelinePermutationFlags(contextFlags, FFX_FSR3UPSCALER_PASS_DEBUG_VIEW, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineDebugView));
@@ -561,61 +561,61 @@ static FfxErrorCode fsr3upscalerCreate(FfxFsr3UpscalerContext_Private* context, 
     // declare internal resources needed
     const FfxInternalResourceDescription internalSurfaceDesc[] = {
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION_1, L"FSR3UPSCALER_Accumulation1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION_1, "FSR3UPSCALER_Accumulation1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
             FFX_SURFACE_FORMAT_R8_UNORM, contextDescription->maxRenderSize.width, contextDescription->maxRenderSize.height, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION_2, L"FSR3UPSCALER_Accumulation2", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION_2, "FSR3UPSCALER_Accumulation2", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
             FFX_SURFACE_FORMAT_R8_UNORM, contextDescription->maxRenderSize.width, contextDescription->maxRenderSize.height, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_1, L"FSR3UPSCALER_Luma1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_1, "FSR3UPSCALER_Luma1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
             FFX_SURFACE_FORMAT_R16_FLOAT, contextDescription->maxRenderSize.width, contextDescription->maxRenderSize.height, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_2, L"FSR3UPSCALER_Luma2", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_2, "FSR3UPSCALER_Luma2", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
             FFX_SURFACE_FORMAT_R16_FLOAT, contextDescription->maxRenderSize.width, contextDescription->maxRenderSize.height, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERMEDIATE_FP16x1, L"FSR3UPSCALER_IntermediateFp16x1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERMEDIATE_FP16x1, "FSR3UPSCALER_IntermediateFp16x1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
             FFX_SURFACE_FORMAT_R16_FLOAT, contextDescription->maxRenderSize.width, contextDescription->maxRenderSize.height, 1, FFX_RESOURCE_FLAGS_ALIASABLE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SHADING_CHANGE, L"FSR3UPSCALER_ShadingChange", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SHADING_CHANGE, "FSR3UPSCALER_ShadingChange", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
             FFX_SURFACE_FORMAT_R8_UNORM, maxRenderSizeDiv2.width, maxRenderSizeDiv2.height, 1, FFX_RESOURCE_FLAGS_ALIASABLE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_NEW_LOCKS, L"FSR3UPSCALER_NewLocks", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_NEW_LOCKS, "FSR3UPSCALER_NewLocks", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV),
             FFX_SURFACE_FORMAT_R8_UNORM, contextDescription->maxUpscaleSize.width, contextDescription->maxUpscaleSize.height, 1, FFX_RESOURCE_FLAGS_ALIASABLE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR_1, L"FSR3UPSCALER_InternalUpscaled1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR_1, "FSR3UPSCALER_InternalUpscaled1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
             FFX_SURFACE_FORMAT_R16G16B16A16_FLOAT, contextDescription->maxUpscaleSize.width, contextDescription->maxUpscaleSize.height, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR_2, L"FSR3UPSCALER_InternalUpscaled2", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR_2, "FSR3UPSCALER_InternalUpscaled2", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
             FFX_SURFACE_FORMAT_R16G16B16A16_FLOAT, contextDescription->maxUpscaleSize.width, contextDescription->maxUpscaleSize.height, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS, L"FSR3UPSCALER_SpdMips", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_UAV,
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS, "FSR3UPSCALER_SpdMips", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_UAV,
             FFX_SURFACE_FORMAT_R16G16_FLOAT, maxRenderSizeDiv2.width, maxRenderSizeDiv2.height, 0, FFX_RESOURCE_FLAGS_ALIASABLE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH_MIP1, L"FSR3UPSCALER_FarthestDepthMip1", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_UAV,
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FARTHEST_DEPTH_MIP1, "FSR3UPSCALER_FarthestDepthMip1", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_UAV,
             FFX_SURFACE_FORMAT_R16_FLOAT, maxRenderSizeDiv2.width, maxRenderSizeDiv2.height, 1, FFX_RESOURCE_FLAGS_ALIASABLE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_HISTORY_1, L"FSR3UPSCALER_LumaHistory1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_HISTORY_1, "FSR3UPSCALER_LumaHistory1", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
             FFX_SURFACE_FORMAT_R16G16B16A16_FLOAT, contextDescription->maxRenderSize.width, contextDescription->maxRenderSize.height, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_HISTORY_2, L"FSR3UPSCALER_LumaHistory2", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_HISTORY_2, "FSR3UPSCALER_LumaHistory2", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
             FFX_SURFACE_FORMAT_R16G16B16A16_FLOAT, contextDescription->maxRenderSize.width, contextDescription->maxRenderSize.height, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_ATOMIC_COUNT, L"FSR3UPSCALER_SpdAtomicCounter", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_ATOMIC_COUNT, "FSR3UPSCALER_SpdAtomicCounter", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV),
             FFX_SURFACE_FORMAT_R32_UINT, 1, 1, 1, FFX_RESOURCE_FLAGS_NONE, FfxResourceInitData::FfxResourceInitValue(sizeof(atomicInitData), 0) },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS, L"FSR3UPSCALER_DilatedReactiveMasks", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS, "FSR3UPSCALER_DilatedReactiveMasks", FFX_RESOURCE_TYPE_TEXTURE2D, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
             FFX_SURFACE_FORMAT_R8G8B8A8_UNORM, contextDescription->maxRenderSize.width, contextDescription->maxRenderSize.height, 1, FFX_RESOURCE_FLAGS_ALIASABLE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LANCZOS_LUT, L"FSR3UPSCALER_LanczosLutData", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_READ_ONLY,
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LANCZOS_LUT, "FSR3UPSCALER_LanczosLutData", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_READ_ONLY,
             FFX_SURFACE_FORMAT_R16_SNORM, lanczos2LutWidth, 1, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_BUFFER, sizeof(lanczos2Weights), lanczos2Weights} },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_DEFAULT_REACTIVITY, L"FSR3UPSCALER_DefaultReactivityMask", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_READ_ONLY,
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_DEFAULT_REACTIVITY, "FSR3UPSCALER_DefaultReactivityMask", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_READ_ONLY,
             FFX_SURFACE_FORMAT_R8_UNORM, 1, 1, 1, FFX_RESOURCE_FLAGS_NONE, FfxResourceInitData::FfxResourceInitValue(sizeof(defaultReactiveMaskData), defaultReactiveMaskData) },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_DEFAULT_EXPOSURE, L"FSR3UPSCALER_DefaultExposure", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_READ_ONLY,
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_INTERNAL_DEFAULT_EXPOSURE, "FSR3UPSCALER_DefaultExposure", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_READ_ONLY,
             FFX_SURFACE_FORMAT_R32G32_FLOAT, 1, 1, 1, FFX_RESOURCE_FLAGS_NONE, FfxResourceInitData::FfxResourceInitBuffer(sizeof(defaultExposure), defaultExposure) },
 
-        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FRAME_INFO, L"FSR3UPSCALER_FrameInfo", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_UAV,
+        {   FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FRAME_INFO, "FSR3UPSCALER_FrameInfo", FFX_RESOURCE_TYPE_TEXTURE2D, FFX_RESOURCE_USAGE_UAV,
             FFX_SURFACE_FORMAT_R32G32B32A32_FLOAT, 1, 1, 1, FFX_RESOURCE_FLAGS_NONE, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} },
 
     };
@@ -771,7 +771,7 @@ static void scheduleDispatch(FfxFsr3UpscalerContext_Private* context, const FfxF
         const FfxResourceInternal currentResource = context->srvResources[currentResourceId];
         jobDescriptor.srvTextures[currentShaderResourceViewIndex].resource = currentResource;
 #ifdef FFX_DEBUG
-        wcscpy_s(jobDescriptor.srvTextures[currentShaderResourceViewIndex].name, pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
+        strcpy(jobDescriptor.srvTextures[currentShaderResourceViewIndex].name, pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
 #endif
     }
 
@@ -779,7 +779,7 @@ static void scheduleDispatch(FfxFsr3UpscalerContext_Private* context, const FfxF
 
         const uint32_t currentResourceId = pipeline->uavTextureBindings[currentUnorderedAccessViewIndex].resourceIdentifier;
 #ifdef FFX_DEBUG
-        wcscpy_s(jobDescriptor.uavTextures[currentUnorderedAccessViewIndex].name, pipeline->uavTextureBindings[currentUnorderedAccessViewIndex].name);
+        strcpy(jobDescriptor.uavTextures[currentUnorderedAccessViewIndex].name, pipeline->uavTextureBindings[currentUnorderedAccessViewIndex].name);
 #endif
 
         if (currentResourceId >= FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_0 && currentResourceId <= FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS_LEVEL_5)
@@ -803,13 +803,13 @@ static void scheduleDispatch(FfxFsr3UpscalerContext_Private* context, const FfxF
 
     for (uint32_t currentRootConstantIndex = 0; currentRootConstantIndex < pipeline->constCount; ++currentRootConstantIndex) {
 #ifdef FFX_DEBUG
-        wcscpy_s( jobDescriptor.cbNames[currentRootConstantIndex], pipeline->constantBufferBindings[currentRootConstantIndex].name);
+        strcpy( jobDescriptor.cbNames[currentRootConstantIndex], pipeline->constantBufferBindings[currentRootConstantIndex].name);
 #endif
         jobDescriptor.cbs[currentRootConstantIndex] = context->constantBuffers[pipeline->constantBufferBindings[currentRootConstantIndex].resourceIdentifier];
     }
 
     FfxGpuJobDescription dispatchJob = { FFX_GPU_JOB_COMPUTE };
-    wcscpy_s(dispatchJob.jobLabel, pipeline->name);
+    strcpy(dispatchJob.jobLabel, pipeline->name);
     dispatchJob.computeJobDescriptor = jobDescriptor;
 
     context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &dispatchJob);
@@ -826,11 +826,11 @@ FFX_API FfxErrorCode ffxFsr3UpscalerGetSharedResourceDescriptions(FfxFsr3Upscale
 
     FfxFsr3UpscalerContext_Private* contextPrivate = (FfxFsr3UpscalerContext_Private*)(context);
     SharedResources->dilatedDepth = { FFX_HEAP_TYPE_DEFAULT, { FFX_RESOURCE_TYPE_TEXTURE2D, FFX_SURFACE_FORMAT_R32_FLOAT, contextPrivate->contextDescription.maxRenderSize.width, contextPrivate->contextDescription.maxRenderSize.height, 1, 1, FFX_RESOURCE_FLAGS_NONE, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET) },
-        FFX_RESOURCE_STATE_UNORDERED_ACCESS, L"FSR3UPSCALER_DilatedDepth", FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_DEPTH, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} };
+        FFX_RESOURCE_STATE_UNORDERED_ACCESS, "FSR3UPSCALER_DilatedDepth", FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_DEPTH, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} };
     SharedResources->dilatedMotionVectors = { FFX_HEAP_TYPE_DEFAULT, { FFX_RESOURCE_TYPE_TEXTURE2D, FFX_SURFACE_FORMAT_R16G16_FLOAT, contextPrivate->contextDescription.maxRenderSize.width, contextPrivate->contextDescription.maxRenderSize.height, 1, 1, FFX_RESOURCE_FLAGS_NONE, (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET) },
-            FFX_RESOURCE_STATE_UNORDERED_ACCESS, L"FSR3UPSCALER_DilatedVelocity", FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} };
+            FFX_RESOURCE_STATE_UNORDERED_ACCESS, "FSR3UPSCALER_DilatedVelocity", FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} };
     SharedResources->reconstructedPrevNearestDepth = { FFX_HEAP_TYPE_DEFAULT, { FFX_RESOURCE_TYPE_TEXTURE2D, FFX_SURFACE_FORMAT_R32_UINT, contextPrivate->contextDescription.maxRenderSize.width, contextPrivate->contextDescription.maxRenderSize.height, 1, 1, FFX_RESOURCE_FLAGS_NONE, (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV) },
-            FFX_RESOURCE_STATE_UNORDERED_ACCESS, L"FSR3UPSCALER_ReconstructedPrevNearestDepth", FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} };
+            FFX_RESOURCE_STATE_UNORDERED_ACCESS, "FSR3UPSCALER_ReconstructedPrevNearestDepth", FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH, {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED} };
 
     return FFX_OK;
 }
@@ -853,17 +853,17 @@ static FfxErrorCode fsr3upscalerDispatch(FfxFsr3UpscalerContext_Private* context
         const float clearValuesToZeroFloat[]{ 0.f, 0.f, 0.f, 0.f };
         memcpy(clearJob.clearJobDescriptor.color, clearValuesToZeroFloat, 4 * sizeof(float));
 
-        wcscpy_s(clearJob.jobLabel, L"Clear Accumulation 1");
+        strcpy(clearJob.jobLabel, "Clear Accumulation 1");
         clearJob.clearJobDescriptor.target = context->srvResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION_1];
         context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &clearJob);
-        wcscpy_s(clearJob.jobLabel, L"Clear Accumulation 2");
+        strcpy(clearJob.jobLabel, "Clear Accumulation 2");
         clearJob.clearJobDescriptor.target = context->srvResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_ACCUMULATION_2];
         context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &clearJob);
 
-        wcscpy_s(clearJob.jobLabel, L"Clear Temporal Luma 1");
+        strcpy(clearJob.jobLabel, "Clear Temporal Luma 1");
         clearJob.clearJobDescriptor.target = context->srvResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_1];
         context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &clearJob);
-        wcscpy_s(clearJob.jobLabel, L"Clear Temporal Luma 2");
+        strcpy(clearJob.jobLabel, "Clear Temporal Luma 2");
         clearJob.clearJobDescriptor.target = context->srvResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_LUMA_2];
         context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &clearJob);
     }
@@ -1048,14 +1048,14 @@ static FfxErrorCode fsr3upscalerDispatch(FfxFsr3UpscalerContext_Private* context
     if (resetAccumulation) {
 
         FfxGpuJobDescription clearJob = { FFX_GPU_JOB_CLEAR_FLOAT };
-        wcscpy_s(clearJob.jobLabel, L"Clear Resource");
+        strcpy(clearJob.jobLabel, "Clear Resource");
 
         const float clearValuesToZeroFloat[]{ 0.f, 0.f, 0.f, 0.f };
         memcpy(clearJob.clearJobDescriptor.color, clearValuesToZeroFloat, 4 * sizeof(float));
         clearJob.clearJobDescriptor.target = context->srvResources[accumulationSrvResourceIndex];
         context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &clearJob);
 
-        wcscpy_s(clearJob.jobLabel, L"Clear Scene Luminance");
+        strcpy(clearJob.jobLabel, "Clear Scene Luminance");
         clearJob.clearJobDescriptor.target = context->srvResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS];
         context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &clearJob);
 
@@ -1063,7 +1063,7 @@ static FfxErrorCode fsr3upscalerDispatch(FfxFsr3UpscalerContext_Private* context
         {
             const float clearValuesExposure[]{ -1.f, 1.f, 0.f, 0.f };
             memcpy(clearJob.clearJobDescriptor.color, clearValuesExposure, 4 * sizeof(float));
-            wcscpy_s(clearJob.jobLabel, L"Clear Frame Info");
+            strcpy(clearJob.jobLabel, "Clear Frame Info");
             clearJob.clearJobDescriptor.target = context->srvResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_FRAME_INFO];
             context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &clearJob);
         }
@@ -1076,7 +1076,7 @@ static FfxErrorCode fsr3upscalerDispatch(FfxFsr3UpscalerContext_Private* context
         const bool  bInverted = (context->contextDescription.flags & FFX_FSR3UPSCALER_ENABLE_DEPTH_INVERTED) == FFX_FSR3UPSCALER_ENABLE_DEPTH_INVERTED;
         const float clearDepthValue[]{bInverted ? 0.f : 1.f, bInverted ? 0.f : 1.f, bInverted ? 0.f : 1.f, bInverted ? 0.f : 1.f};
         memcpy(clearJob.clearJobDescriptor.color, clearDepthValue, 4 * sizeof(float));
-        wcscpy_s(clearJob.jobLabel, L"Clear Reconstructed Previous Nearest Depth");
+        strcpy(clearJob.jobLabel, "Clear Reconstructed Previous Nearest Depth");
         clearJob.clearJobDescriptor.target = context->srvResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH];
         context->contextDescription.backendInterface.fpScheduleGpuJob(&context->contextDescription.backendInterface, &clearJob);
     }
@@ -1084,7 +1084,7 @@ static FfxErrorCode fsr3upscalerDispatch(FfxFsr3UpscalerContext_Private* context
     // Suggested by Enduring to resolve issues with running FSR3 on console via the RHI backend in the plugin as this resource won't be cleared to 0 by default.
 	{
 		FfxGpuJobDescription clearJob = { FFX_GPU_JOB_CLEAR_FLOAT };
-		wcscpy_s(clearJob.jobLabel, L"Clear Spd Atomic Count");
+		strcpy(clearJob.jobLabel, "Clear Spd Atomic Count");
 		const float clearValuesToZeroFloat[]{ 0.f, 0.f, 0.f, 0.f };
 		memcpy(clearJob.clearJobDescriptor.color, clearValuesToZeroFloat, 4 * sizeof(float));
 		clearJob.clearJobDescriptor.target = context->uavResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_ATOMIC_COUNT];
@@ -1136,7 +1136,7 @@ static FfxErrorCode fsr3upscalerDispatch(FfxFsr3UpscalerContext_Private* context
         // SPD counter needs to be cleared
         {
             FfxGpuJobDescription clearJob = { FFX_GPU_JOB_CLEAR_FLOAT };
-            wcscpy_s(clearJob.jobLabel, L"Clear Spd Atomic Count");
+            strcpy(clearJob.jobLabel, "Clear Spd Atomic Count");
             const float clearValuesToZeroFloat[]{ 0.f, 0.f, 0.f, 0.f };
             memcpy(clearJob.clearJobDescriptor.color, clearValuesToZeroFloat, 4 * sizeof(float));
             clearJob.clearJobDescriptor.target = context->uavResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_SPD_MIPS];
@@ -1388,9 +1388,9 @@ FfxErrorCode ffxFsr3UpscalerContextGenerateReactiveMask(FfxFsr3UpscalerContext* 
     jobDescriptor.uavTextures[0].resource = contextPrivate->uavResources[FFX_FSR3UPSCALER_RESOURCE_IDENTIFIER_AUTOREACTIVE];
 
 #ifdef FFX_DEBUG
-    wcscpy_s(jobDescriptor.srvTextures[0].name, pipeline->srvTextureBindings[0].name);
-    wcscpy_s(jobDescriptor.srvTextures[1].name, pipeline->srvTextureBindings[1].name);
-    wcscpy_s(jobDescriptor.uavTextures[0].name, pipeline->uavTextureBindings[0].name);
+    strcpy(jobDescriptor.srvTextures[0].name, pipeline->srvTextureBindings[0].name);
+    strcpy(jobDescriptor.srvTextures[1].name, pipeline->srvTextureBindings[1].name);
+    strcpy(jobDescriptor.uavTextures[0].name, pipeline->uavTextureBindings[0].name);
 #endif
 
     jobDescriptor.dimensions[0] = dispatchSrcX;
@@ -1404,7 +1404,7 @@ FfxErrorCode ffxFsr3UpscalerContextGenerateReactiveMask(FfxFsr3UpscalerContext* 
         const FfxResourceInternal currentResource = contextPrivate->srvResources[currentResourceId];
         jobDescriptor.srvTextures[currentShaderResourceViewIndex].resource = currentResource;
 #ifdef FFX_DEBUG
-        wcscpy_s(jobDescriptor.srvTextures[currentShaderResourceViewIndex].name, pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
+        strcpy(jobDescriptor.srvTextures[currentShaderResourceViewIndex].name, pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
 #endif
     }
 
@@ -1419,7 +1419,7 @@ FfxErrorCode ffxFsr3UpscalerContextGenerateReactiveMask(FfxFsr3UpscalerContext* 
     for (uint32_t currentRootConstantIndex = 0; currentRootConstantIndex < pipeline->constCount; ++currentRootConstantIndex)
     {
 #ifdef FFX_DEBUG
-        wcscpy_s(jobDescriptor.cbNames[currentRootConstantIndex], pipeline->constantBufferBindings[currentRootConstantIndex].name);
+        strcpy(jobDescriptor.cbNames[currentRootConstantIndex], pipeline->constantBufferBindings[currentRootConstantIndex].name);
 #endif
         jobDescriptor.cbs[currentRootConstantIndex] = contextPrivate->constantBuffers[pipeline->constantBufferBindings[currentRootConstantIndex].resourceIdentifier];
     }

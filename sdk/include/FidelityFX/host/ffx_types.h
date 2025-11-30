@@ -74,7 +74,7 @@
 /// FidelityFX exported functions
 ///
 /// @ingroup Defines
-#define FFX_API __declspec(dllexport)
+#define FFX_API __attribute__((visibility("default")))
 #endif // #if defined (FFX_GCC)
 
 #define FFX_SDK_DEFAULT_CONTEXT_SIZE (1024 * 256)
@@ -506,7 +506,7 @@ typedef enum FfxBarrierType
     FFX_BARRIER_TYPE_UAV,
 } FfxBarrierType;
 
-typedef void (*ffxMessageCallback)(uint32_t type, const wchar_t* message);
+typedef void (*ffxMessageCallback)(uint32_t type, const char* message);
 
 /// An enumeration for message types that can be passed
 ///
@@ -742,7 +742,7 @@ typedef struct FfxResource {
     void*                           resource;                               ///< pointer to the resource.
     FfxResourceDescription          description;
     FfxResourceStates               state;
-    wchar_t                         name[FFX_RESOURCE_NAME_SIZE];           ///< (optional) Resource name.
+    char                         name[FFX_RESOURCE_NAME_SIZE];           ///< (optional) Resource name.
 } FfxResource;
 
 /// A structure describing a static resource.
@@ -852,7 +852,7 @@ typedef struct FfxResourceInitData
 typedef struct FfxInternalResourceDescription {
 
     uint32_t                    id;         ///< Resource identifier
-    const wchar_t*              name;       ///< Name to set to the resource for easier debugging
+    const char*              name;       ///< Name to set to the resource for easier debugging
     FfxResourceType             type;       ///< The type of resource (see <c><i>FfxResourceType</i></c>)
     FfxResourceUsage            usage;      ///< Resource usage flags (see <c><i>FfxResourceUsage</i></c>)
     FfxSurfaceFormat            format;     ///< The resource format to use
@@ -881,10 +881,10 @@ typedef struct FfxViewDescription
     };
 
     int32_t                     firstSlice;                 ///< The first slice to map to, (-1) for default first slice
-    wchar_t                     name[FFX_RESOURCE_NAME_SIZE];
+    char                     name[FFX_RESOURCE_NAME_SIZE];
 } FfxViewDescription;
 
-static FfxViewDescription s_FfxViewDescInit = { false, FFX_RESOURCE_VIEW_DIMENSION_TEXTURE_2D, -1, -1, -1, L"" };
+static FfxViewDescription s_FfxViewDescInit = { false, FFX_RESOURCE_VIEW_DIMENSION_TEXTURE_2D, -1, -1, -1, "" };
 
 /// A structure defining a resource bind point
 ///
@@ -894,7 +894,7 @@ typedef struct FfxResourceBinding
     uint32_t    slotIndex;                      ///< The slot into which to bind the resource
     uint32_t    arrayIndex;                     ///< The resource offset for mip/array access
     uint32_t    resourceIdentifier;             ///< A unique resource identifier representing an internal resource index
-    wchar_t     name[FFX_RESOURCE_NAME_SIZE];   ///< A debug name to help track the resource binding
+    char     name[FFX_RESOURCE_NAME_SIZE];   ///< A debug name to help track the resource binding
 }FfxResourceBinding;
 
 /// A structure encapsulating a single pass of an algorithm.
@@ -922,7 +922,7 @@ typedef struct FfxPipelineState {
     FfxResourceBinding              uavBufferBindings[FFX_MAX_NUM_UAVS];                ///< Array of ResourceIdentifiers bound as buffer UAVs
     FfxResourceBinding              constantBufferBindings[FFX_MAX_NUM_CONST_BUFFERS];  ///< Array of ResourceIdentifiers bound as CBs
 
-    wchar_t                         name[FFX_RESOURCE_NAME_SIZE];                       ///< Pipeline name for debugging/profiling purposes
+    char                         name[FFX_RESOURCE_NAME_SIZE];                       ///< Pipeline name for debugging/profiling purposes
 } FfxPipelineState;
 
 /// A structure containing the data required to create a resource.
@@ -933,7 +933,7 @@ typedef struct FfxCreateResourceDescription {
     FfxHeapType                     heapType;                               ///< The heap type to hold the resource, typically <c><i>FFX_HEAP_TYPE_DEFAULT</i></c>.
     FfxResourceDescription          resourceDescription;                    ///< A resource description.
     FfxResourceStates               initialState;                            ///< The initial resource state.
-    const wchar_t*                  name;                                   ///< Name of the resource.
+    const char*                  name;                                   ///< Name of the resource.
     uint32_t                        id;                                     ///< Internal resource ID.
     FfxResourceInitData             initData;                               ///< A struct used to initialize the resource.
 } FfxCreateResourceDescription;
@@ -993,7 +993,7 @@ typedef struct FfxPipelineDescription {
     size_t                              samplerCount;                   ///< Number of samplers to create for the pipeline
     const FfxRootConstantDescription*   rootConstants;                  ///< A collection of root constant descriptions to use when building the root signature for the pipeline
     uint32_t                            rootConstantBufferCount;        ///< Number of root constant buffers to create for the pipeline
-    wchar_t                             name[64];                       ///< Pipeline name with which to name the pipeline object
+    char                             name[64];                       ///< Pipeline name with which to name the pipeline object
     FfxBindStage                        stage;                          ///< The stage(s) for which this pipeline is being built
     uint32_t                            indirectWorkload;               ///< Whether this pipeline has an indirect workload
     FfxSurfaceFormat                    backbufferFormat;               ///< For raster pipelines this contains the backbuffer format
@@ -1026,7 +1026,7 @@ typedef struct FfxTextureSRV
 {
     FfxResourceInternal resource;               ///< Resource corresponding to the shader resource view.
 #ifdef FFX_DEBUG
-    wchar_t             name[FFX_RESOURCE_NAME_SIZE];
+    char             name[FFX_RESOURCE_NAME_SIZE];
 #endif
 } FfxTextureSRV;
 
@@ -1038,7 +1038,7 @@ typedef struct FfxBufferSRV
     uint32_t            stride;                 ///< Size of resource to bind in bytes.
     FfxResourceInternal resource;               ///< Resource corresponding to the shader resource view.
 #ifdef FFX_DEBUG
-    wchar_t             name[FFX_RESOURCE_NAME_SIZE];
+    char             name[FFX_RESOURCE_NAME_SIZE];
 #endif
 } FfxBufferSRV;
 
@@ -1048,7 +1048,7 @@ typedef struct FfxTextureUAV
     uint32_t            mip;                    ///< Mip level of resource to bind.
     FfxResourceInternal resource;               ///< Resource corresponding to the unordered access view.
 #ifdef FFX_DEBUG
-    wchar_t             name[FFX_RESOURCE_NAME_SIZE];
+    char             name[FFX_RESOURCE_NAME_SIZE];
 #endif
 } FfxTextureUAV;
 
@@ -1060,7 +1060,7 @@ typedef struct FfxBufferUAV
     uint32_t            stride;                 ///< Size of resource to bind in bytes.
     FfxResourceInternal resource;               ///< Resource corresponding to the unordered access view.
 #ifdef FFX_DEBUG
-    wchar_t             name[FFX_RESOURCE_NAME_SIZE];
+    char             name[FFX_RESOURCE_NAME_SIZE];
 #endif
 } FfxBufferUAV;
 
@@ -1089,7 +1089,7 @@ typedef struct FfxComputeJobDescription {
 
     FfxConstantBuffer               cbs[FFX_MAX_NUM_CONST_BUFFERS];         ///< Constant buffers to be bound in the compute job.
 #ifdef FFX_DEBUG
-    wchar_t                         cbNames[FFX_MAX_NUM_CONST_BUFFERS][FFX_RESOURCE_NAME_SIZE];
+    char                         cbNames[FFX_MAX_NUM_CONST_BUFFERS][FFX_RESOURCE_NAME_SIZE];
 #endif
 } FfxComputeJobDescription;
 
@@ -1103,7 +1103,7 @@ typedef struct FfxRasterJobDescription
 
     FfxConstantBuffer               cbs[FFX_MAX_NUM_CONST_BUFFERS];         ///< Constant buffers to be bound in the compute job.
 #ifdef FFX_DEBUG
-    wchar_t                         cbNames[FFX_MAX_NUM_CONST_BUFFERS][FFX_RESOURCE_NAME_SIZE];
+    char                         cbNames[FFX_MAX_NUM_CONST_BUFFERS][FFX_RESOURCE_NAME_SIZE];
 #endif
 } FfxRasterJobDescription;
 
@@ -1130,7 +1130,7 @@ typedef struct FfxDiscardJobDescription {
 typedef struct FfxGpuJobDescription{
 
     FfxGpuJobType       jobType;                                    ///< Type of the job.
-    wchar_t             jobLabel[FFX_RESOURCE_NAME_SIZE];           ///< Job label for markers
+    char             jobLabel[FFX_RESOURCE_NAME_SIZE];           ///< Job label for markers
 
     union {
         FfxClearFloatJobDescription clearJobDescriptor;                     ///< Clear job descriptor. Valid when <c><i>jobType</i></c> is <c><i>FFX_RENDER_JOB_CLEAR_FLOAT</i></c>.

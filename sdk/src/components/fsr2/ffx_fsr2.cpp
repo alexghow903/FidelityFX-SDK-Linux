@@ -45,6 +45,8 @@
 
 #include "ffx_fsr2_maximum_bias.h"
 
+#define _countof(x) (sizeof(x) / sizeof((x)[0]))
+
 // max queued frames for descriptor management
 static const uint32_t FSR2_MAX_QUEUED_FRAMES = 16;
 
@@ -54,69 +56,69 @@ static const uint32_t FSR2_MAX_QUEUED_FRAMES = 16;
 typedef struct ResourceBinding
 {
     uint32_t    index;
-    wchar_t     name[64];
+    char     name[64];
 }ResourceBinding;
 
 static const ResourceBinding srvTextureBindingTable[] =
 {
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_COLOR,                              L"r_input_color_jittered"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_OPAQUE_ONLY,                        L"r_input_opaque_only"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_MOTION_VECTORS,                     L"r_input_motion_vectors"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_DEPTH,                              L"r_input_depth" },
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_EXPOSURE,                           L"r_input_exposure"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_AUTO_EXPOSURE,                            L"r_auto_exposure"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_REACTIVE_MASK,                      L"r_reactive_mask"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_TRANSPARENCY_AND_COMPOSITION_MASK,  L"r_transparency_and_composition_mask"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,     L"r_reconstructed_previous_nearest_depth"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS,                   L"r_dilated_motion_vectors"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_PREVIOUS_DILATED_MOTION_VECTORS,          L"r_previous_dilated_motion_vectors"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_DEPTH,                            L"r_dilatedDepth"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR,                  L"r_internal_upscaled_color"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_STATUS,                              L"r_lock_status"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_PREPARED_INPUT_COLOR,                     L"r_prepared_input_color"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_LUMA_HISTORY,                             L"r_luma_history" },
-    {FFX_FSR2_RESOURCE_IDENTIFIER_RCAS_INPUT,                               L"r_rcas_input"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_LANCZOS_LUT,                              L"r_lanczos_lut"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE,                          L"r_imgMips"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_SHADING_CHANGE,    L"r_img_mip_shading_change"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_5,                 L"r_img_mip_5"},
-    {FFX_FSR2_RESOURCE_IDENTITIER_UPSAMPLE_MAXIMUM_BIAS_LUT,                L"r_upsample_maximum_bias_lut"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,                   L"r_dilated_reactive_masks"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_NEW_LOCKS,                                L"r_new_locks"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_INPUT_LUMA,                          L"r_lock_input_luma"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_PRE_ALPHA_COLOR,                     L"r_input_prev_color_pre_alpha"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_POST_ALPHA_COLOR,                    L"r_input_prev_color_post_alpha"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_COLOR,                              "r_input_color_jittered"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_OPAQUE_ONLY,                        "r_input_opaque_only"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_MOTION_VECTORS,                     "r_input_motion_vectors"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_DEPTH,                              "r_input_depth" },
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_EXPOSURE,                           "r_input_exposure"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_AUTO_EXPOSURE,                            "r_auto_exposure"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_REACTIVE_MASK,                      "r_reactive_mask"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INPUT_TRANSPARENCY_AND_COMPOSITION_MASK,  "r_transparency_and_composition_mask"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,     "r_reconstructed_previous_nearest_depth"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS,                   "r_dilated_motion_vectors"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_PREVIOUS_DILATED_MOTION_VECTORS,          "r_previous_dilated_motion_vectors"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_DEPTH,                            "r_dilatedDepth"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR,                  "r_internal_upscaled_color"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_STATUS,                              "r_lock_status"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_PREPARED_INPUT_COLOR,                     "r_prepared_input_color"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_LUMA_HISTORY,                             "r_luma_history" },
+    {FFX_FSR2_RESOURCE_IDENTIFIER_RCAS_INPUT,                               "r_rcas_input"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_LANCZOS_LUT,                              "r_lanczos_lut"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE,                          "r_imgMips"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_SHADING_CHANGE,    "r_img_mip_shading_change"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_5,                 "r_img_mip_5"},
+    {FFX_FSR2_RESOURCE_IDENTITIER_UPSAMPLE_MAXIMUM_BIAS_LUT,                "r_upsample_maximum_bias_lut"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,                   "r_dilated_reactive_masks"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_NEW_LOCKS,                                "r_new_locks"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_INPUT_LUMA,                          "r_lock_input_luma"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_PRE_ALPHA_COLOR,                     "r_input_prev_color_pre_alpha"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_POST_ALPHA_COLOR,                    "r_input_prev_color_post_alpha"},
 };
 
 static const ResourceBinding uavTextureBindingTable[] =
 {
-    {FFX_FSR2_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,    L"rw_reconstructed_previous_nearest_depth"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS,                  L"rw_dilated_motion_vectors"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_DEPTH,                           L"rw_dilatedDepth"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR,                 L"rw_internal_upscaled_color"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_STATUS,                             L"rw_lock_status"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_PREPARED_INPUT_COLOR,                    L"rw_prepared_input_color"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_LUMA_HISTORY,                            L"rw_luma_history"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_UPSCALED_OUTPUT,                         L"rw_upscaled_output"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_SHADING_CHANGE,   L"rw_img_mip_shading_change"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_5,                L"rw_img_mip_5"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,                  L"rw_dilated_reactive_masks"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_AUTO_EXPOSURE,                           L"rw_auto_exposure"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_SPD_ATOMIC_COUNT,                        L"rw_spd_global_atomic"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_NEW_LOCKS,                               L"rw_new_locks"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_INPUT_LUMA,                         L"rw_lock_input_luma"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_AUTOREACTIVE,                            L"rw_output_autoreactive"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_AUTOCOMPOSITION,                         L"rw_output_autocomposition"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_PRE_ALPHA_COLOR,                    L"rw_output_prev_color_pre_alpha"},
-    {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_POST_ALPHA_COLOR,                   L"rw_output_prev_color_post_alpha"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,    "rw_reconstructed_previous_nearest_depth"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_MOTION_VECTORS,                  "rw_dilated_motion_vectors"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_DEPTH,                           "rw_dilatedDepth"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR,                 "rw_internal_upscaled_color"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_STATUS,                             "rw_lock_status"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_PREPARED_INPUT_COLOR,                    "rw_prepared_input_color"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_LUMA_HISTORY,                            "rw_luma_history"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_UPSCALED_OUTPUT,                         "rw_upscaled_output"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_SHADING_CHANGE,   "rw_img_mip_shading_change"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_5,                "rw_img_mip_5"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,                  "rw_dilated_reactive_masks"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_AUTO_EXPOSURE,                           "rw_auto_exposure"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_SPD_ATOMIC_COUNT,                        "rw_spd_global_atomic"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_NEW_LOCKS,                               "rw_new_locks"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_INPUT_LUMA,                         "rw_lock_input_luma"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_AUTOREACTIVE,                            "rw_output_autoreactive"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_AUTOCOMPOSITION,                         "rw_output_autocomposition"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_PRE_ALPHA_COLOR,                    "rw_output_prev_color_pre_alpha"},
+    {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_POST_ALPHA_COLOR,                   "rw_output_prev_color_post_alpha"},
 };
 
 static const ResourceBinding constantBufferBindingTable[] =
 {
-    {FFX_FSR2_CONSTANTBUFFER_IDENTIFIER_FSR2,           L"cbFSR2"},
-    {FFX_FSR2_CONSTANTBUFFER_IDENTIFIER_SPD,            L"cbSPD"},
-    {FFX_FSR2_CONSTANTBUFFER_IDENTIFIER_RCAS,           L"cbRCAS"},
-    {FFX_FSR2_CONSTANTBUFFER_IDENTIFIER_GENREACTIVE,    L"cbGenerateReactive"},
+    {FFX_FSR2_CONSTANTBUFFER_IDENTIFIER_FSR2,           "cbFSR2"},
+    {FFX_FSR2_CONSTANTBUFFER_IDENTIFIER_SPD,            "cbSPD"},
+    {FFX_FSR2_CONSTANTBUFFER_IDENTIFIER_RCAS,           "cbRCAS"},
+    {FFX_FSR2_CONSTANTBUFFER_IDENTIFIER_GENREACTIVE,    "cbGenerateReactive"},
 };
 
 // Broad structure of the root signature.
@@ -192,77 +194,77 @@ static void fsr2DebugCheckDispatch(FfxFsr2Context_Private* context, const FfxFsr
 {
     if (params->commandList == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"commandList is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "commandList is nul");
     }
 
     if (params->color.resource == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"color resource is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "color resource is nul");
     }
 
     if (params->depth.resource == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"depth resource is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "depth resource is nul");
     }
 
     if (params->motionVectors.resource == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"motionVectors resource is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "motionVectors resource is nul");
     }
 
     if (params->exposure.resource != nullptr)
     {
         if ((context->contextDescription.flags & FFX_FSR2_ENABLE_AUTO_EXPOSURE) == FFX_FSR2_ENABLE_AUTO_EXPOSURE)
         {
-            FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"exposure resource provided, however auto exposure flag is present");
+            FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "exposure resource provided, however auto exposure flag is present");
         }
     }
 
     if (params->output.resource == nullptr)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"output resource is null");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "output resource is nul");
     }
 
     if (fabs(params->jitterOffset.x) > 1.0f || fabs(params->jitterOffset.y) > 1.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"jitterOffset contains value outside of expected range [-1.0, 1.0]");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "jitterOffset contains value outside of expected range [-1.0, 1.0]");
     }
 
     if ((params->motionVectorScale.x > (float)context->contextDescription.maxRenderSize.width) ||
         (params->motionVectorScale.y > (float)context->contextDescription.maxRenderSize.height))
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"motionVectorScale contains scale value greater than maxRenderSize");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "motionVectorScale contains scale value greater than maxRenderSize");
     }
     if ((params->motionVectorScale.x == 0.0f) ||
         (params->motionVectorScale.y == 0.0f))
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"motionVectorScale contains zero scale value");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "motionVectorScale contains zero scale value");
     }
 
     if ((params->renderSize.width > context->contextDescription.maxRenderSize.width) ||
         (params->renderSize.height > context->contextDescription.maxRenderSize.height))
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"renderSize is greater than context maxRenderSize");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "renderSize is greater than context maxRenderSize");
     }
     if ((params->renderSize.width == 0) ||
         (params->renderSize.height == 0))
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"renderSize contains zero dimension");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "renderSize contains zero dimension");
     }
 
     if (params->sharpness < 0.0f || params->sharpness > 1.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"sharpness contains value outside of expected range [0.0, 1.0]");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "sharpness contains value outside of expected range [0.0, 1.0]");
     }
 
     if (params->frameTimeDelta < 1.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, L"frameTimeDelta is less than 1.0f - this value should be milliseconds (~16.6f for 60fps)");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING, "frameTimeDelta is less than 1.0f - this value should be milliseconds (~16.6f for 60fps)");
     }
 
     if (params->preExposure == 0.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"preExposure provided as 0.0f which is invalid");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "preExposure provided as 0.0f which is invalid");
     }
 
     bool infiniteDepth = (context->contextDescription.flags & FFX_FSR2_ENABLE_DEPTH_INFINITE) == FFX_FSR2_ENABLE_DEPTH_INFINITE;
@@ -273,20 +275,20 @@ static void fsr2DebugCheckDispatch(FfxFsr2Context_Private* context, const FfxFsr
         if (params->cameraNear < params->cameraFar)
         {
             FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                L"FFX_FSR2_ENABLE_DEPTH_INVERTED flag is present yet cameraNear is less than cameraFar");
+                "FFX_FSR2_ENABLE_DEPTH_INVERTED flag is present yet cameraNear is less than cameraFar");
         }
         if (infiniteDepth)
         {
             if (params->cameraNear != FLT_MAX)
             {
                 FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                    L"FFX_FSR2_ENABLE_DEPTH_INFINITE and FFX_FSR2_ENABLE_DEPTH_INVERTED present, yet cameraNear != FLT_MAX");
+                    "FFX_FSR2_ENABLE_DEPTH_INFINITE and FFX_FSR2_ENABLE_DEPTH_INVERTED present, yet cameraNear != FLT_MAX");
             }
         }
         if (params->cameraFar < 0.075f)
         {
             FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                L"FFX_FSR2_ENABLE_DEPTH_INFINITE and FFX_FSR2_ENABLE_DEPTH_INVERTED present, cameraFar value is very low which may result in depth separation artefacting");
+                "FFX_FSR2_ENABLE_DEPTH_INFINITE and FFX_FSR2_ENABLE_DEPTH_INVERTED present, cameraFar value is very low which may result in depth separation artefacting");
         }
     }
     else
@@ -294,30 +296,30 @@ static void fsr2DebugCheckDispatch(FfxFsr2Context_Private* context, const FfxFsr
         if (params->cameraNear > params->cameraFar)
         {
             FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                L"cameraNear is greater than cameraFar in non-inverted-depth context");
+                "cameraNear is greater than cameraFar in non-inverted-depth context");
         }
         if (infiniteDepth)
         {
             if (params->cameraFar != FLT_MAX)
             {
                 FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                    L"FFX_FSR2_ENABLE_DEPTH_INFINITE and FFX_FSR2_ENABLE_DEPTH_INVERTED present, yet cameraFar != FLT_MAX");
+                    "FFX_FSR2_ENABLE_DEPTH_INFINITE and FFX_FSR2_ENABLE_DEPTH_INVERTED present, yet cameraFar != FLT_MAX");
             }
         }
         if (params->cameraNear < 0.075f)
         {
             FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_WARNING,
-                L"FFX_FSR2_ENABLE_DEPTH_INFINITE and FFX_FSR2_ENABLE_DEPTH_INVERTED present, cameraNear value is very low which may result in depth separation artefacting");
+                "FFX_FSR2_ENABLE_DEPTH_INFINITE and FFX_FSR2_ENABLE_DEPTH_INVERTED present, cameraNear value is very low which may result in depth separation artefacting");
         }
     }
 
     if (params->cameraFovAngleVertical <= 0.0f)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"cameraFovAngleVertical is 0.0f - this value should be > 0.0f");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "cameraFovAngleVertical is 0.0f - this value should be > 0.0f");
     }
     if (params->cameraFovAngleVertical > FFX_PI)
     {
-        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, L"cameraFovAngleVertical is greater than 180 degrees/PI");
+        FFX_PRINT_MESSAGE(FFX_MESSAGE_TYPE_ERROR, "cameraFovAngleVertical is greater than 180 degrees/PI");
     }
 }
 
@@ -328,7 +330,7 @@ static FfxErrorCode patchResourceBindings(FfxPipelineState* inoutPipeline)
         int32_t mapIndex = 0;
         for (mapIndex = 0; mapIndex < _countof(srvTextureBindingTable); ++mapIndex)
         {
-            if (0 == wcscmp(srvTextureBindingTable[mapIndex].name, inoutPipeline->srvTextureBindings[srvIndex].name))
+            if (0 == strcmp(srvTextureBindingTable[mapIndex].name, inoutPipeline->srvTextureBindings[srvIndex].name))
                 break;
         }
         if (mapIndex == _countof(srvTextureBindingTable))
@@ -342,7 +344,7 @@ static FfxErrorCode patchResourceBindings(FfxPipelineState* inoutPipeline)
         int32_t mapIndex = 0;
         for (mapIndex = 0; mapIndex < _countof(uavTextureBindingTable); ++mapIndex)
         {
-            if (0 == wcscmp(uavTextureBindingTable[mapIndex].name, inoutPipeline->uavTextureBindings[uavIndex].name))
+            if (0 == strcmp(uavTextureBindingTable[mapIndex].name, inoutPipeline->uavTextureBindings[uavIndex].name))
                 break;
         }
         if (mapIndex == _countof(uavTextureBindingTable))
@@ -356,7 +358,7 @@ static FfxErrorCode patchResourceBindings(FfxPipelineState* inoutPipeline)
         int32_t mapIndex = 0;
         for (mapIndex = 0; mapIndex < _countof(constantBufferBindingTable); ++mapIndex)
         {
-            if (0 == wcscmp(constantBufferBindingTable[mapIndex].name, inoutPipeline->constantBufferBindings[cbIndex].name))
+            if (0 == strcmp(constantBufferBindingTable[mapIndex].name, inoutPipeline->constantBufferBindings[cbIndex].name))
                 break;
         }
         if (mapIndex == _countof(constantBufferBindingTable))
@@ -431,42 +433,42 @@ static FfxErrorCode createPipelineStates(FfxFsr2Context_Private* context)
     uint32_t contextFlags = context->contextDescription.flags;
 
     // Set up pipeline descriptor (basically RootSignature and binding)
-    wcscpy_s(pipelineDescription.name, L"FSR2-LUM_PYRAMID");
+    strcpy(pipelineDescription.name, "FSR2-LUM_PYRAMID");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_COMPUTE_LUMINANCE_PYRAMID,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_COMPUTE_LUMINANCE_PYRAMID, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineComputeLuminancePyramid));
-    wcscpy_s(pipelineDescription.name, L"FSR2-RCAS");
+    strcpy(pipelineDescription.name, "FSR2-RCAS");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_RCAS,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_RCAS, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineRCAS));
-    wcscpy_s(pipelineDescription.name, L"FSR2-GEN_REACTIVE");
+    strcpy(pipelineDescription.name, "FSR2-GEN_REACTIVE");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_GENERATE_REACTIVE,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_GENERATE_REACTIVE, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineGenerateReactive));
-    wcscpy_s(pipelineDescription.name, L"FSR2-TCR_AUTOGENERATE");
+    strcpy(pipelineDescription.name, "FSR2-TCR_AUTOGENERATE");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_TCR_AUTOGENERATE,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_TCR_AUTOGENERATE, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineTcrAutogenerate));
 
     pipelineDescription.rootConstantBufferCount = 1;
 
-    wcscpy_s(pipelineDescription.name, L"FSR2-DEPTH_CLIP");
+    strcpy(pipelineDescription.name, "FSR2-DEPTH_CLIP");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_DEPTH_CLIP,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_DEPTH_CLIP, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineDepthClip));
-    wcscpy_s(pipelineDescription.name, L"FSR2-RECON_PREV_DEPTH");
+    strcpy(pipelineDescription.name, "FSR2-RECON_PREV_DEPTH");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_RECONSTRUCT_PREVIOUS_DEPTH,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_RECONSTRUCT_PREVIOUS_DEPTH, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineReconstructPreviousDepth));
-    wcscpy_s(pipelineDescription.name, L"FSR2-LOCK");
+    strcpy(pipelineDescription.name, "FSR2-LOCK");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_LOCK,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_LOCK, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineLock));
-    wcscpy_s(pipelineDescription.name, L"FSR2-ACCUMULATE");
+    strcpy(pipelineDescription.name, "FSR2-ACCUMULATE");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_ACCUMULATE,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_ACCUMULATE, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineAccumulate));
-    wcscpy_s(pipelineDescription.name, L"FSR2-ACCUM_SHARP");
+    strcpy(pipelineDescription.name, "FSR2-ACCUM_SHARP");
     FFX_VALIDATE(context->contextDescription.backendInterface.fpCreatePipeline(&context->contextDescription.backendInterface, FFX_EFFECT_FSR2, FFX_FSR2_PASS_ACCUMULATE_SHARPEN,
         getPipelinePermutationFlags(contextFlags, FFX_FSR2_PASS_ACCUMULATE_SHARPEN, supportedFP16, canForceWave64, useLut),
         &pipelineDescription, context->effectContextId, &context->pipelineAccumulateSharpen));
@@ -546,7 +548,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
     const FfxInternalResourceDescription internalSurfaceDesc[] = {
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_PREPARED_INPUT_COLOR,
-         L"FSR2_PreparedInputColor",
+         "FSR2_PreparedInputColor",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
          FFX_SURFACE_FORMAT_R16G16B16A16_FLOAT,
@@ -557,7 +559,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_RECONSTRUCTED_PREVIOUS_NEAREST_DEPTH,
-         L"FSR2_ReconstructedPrevNearestDepth",
+         "FSR2_ReconstructedPrevNearestDepth",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R32_UINT,
@@ -568,7 +570,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_DILATED_MOTION_VECTORS_1,
-         L"FSR2_InternalDilatedVelocity1",
+         "FSR2_InternalDilatedVelocity1",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
          FFX_SURFACE_FORMAT_R16G16_FLOAT,
@@ -579,7 +581,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_DILATED_MOTION_VECTORS_2,
-         L"FSR2_InternalDilatedVelocity2",
+         "FSR2_InternalDilatedVelocity2",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
          FFX_SURFACE_FORMAT_R16G16_FLOAT,
@@ -590,7 +592,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_DEPTH,
-         L"FSR2_DilatedDepth",
+         "FSR2_DilatedDepth",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
          FFX_SURFACE_FORMAT_R32_FLOAT,
@@ -601,7 +603,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
             
         {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_STATUS_1,
-         L"FSR2_LockStatus1",
+         "FSR2_LockStatus1",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
          FFX_SURFACE_FORMAT_R16G16_FLOAT,
@@ -612,7 +614,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_STATUS_2,
-         L"FSR2_LockStatus2",
+         "FSR2_LockStatus2",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
          FFX_SURFACE_FORMAT_R16G16_FLOAT,
@@ -623,7 +625,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_LOCK_INPUT_LUMA,
-         L"FSR2_LockInputLuma",
+         "FSR2_LockInputLuma",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV),
          FFX_SURFACE_FORMAT_R16_FLOAT,
@@ -634,7 +636,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_NEW_LOCKS,
-         L"FSR2_NewLocks",
+         "FSR2_NewLocks",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV),
          FFX_SURFACE_FORMAT_R8_UNORM,
@@ -645,7 +647,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR_1,
-         L"FSR2_InternalUpscaled1",
+         "FSR2_InternalUpscaled1",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
          FFX_SURFACE_FORMAT_R16G16B16A16_FLOAT,
@@ -656,7 +658,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_UPSCALED_COLOR_2,
-         L"FSR2_InternalUpscaled2",
+         "FSR2_InternalUpscaled2",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
          FFX_SURFACE_FORMAT_R16G16B16A16_FLOAT,
@@ -667,7 +669,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE,
-         L"FSR2_ExposureMips",
+         "FSR2_ExposureMips",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R16_FLOAT,
@@ -678,7 +680,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_LUMA_HISTORY_1,
-         L"FSR2_LumaHistory1",
+         "FSR2_LumaHistory1",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
          FFX_SURFACE_FORMAT_R8G8B8A8_UNORM,
@@ -689,7 +691,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_LUMA_HISTORY_2,
-         L"FSR2_LumaHistory2",
+         "FSR2_LumaHistory2",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_RENDERTARGET | FFX_RESOURCE_USAGE_UAV),
          FFX_SURFACE_FORMAT_R8G8B8A8_UNORM,
@@ -700,7 +702,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_SPD_ATOMIC_COUNT,
-         L"FSR2_SpdAtomicCounter",
+         "FSR2_SpdAtomicCounter",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R32_UINT,
@@ -711,7 +713,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_VALUE, sizeof(uint32_t), 0}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_DILATED_REACTIVE_MASKS,
-         L"FSR2_DilatedReactiveMasks",
+         "FSR2_DilatedReactiveMasks",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          (FfxResourceUsage)(FFX_RESOURCE_USAGE_UAV | FFX_RESOURCE_USAGE_DCC_RENDERTARGET),
          FFX_SURFACE_FORMAT_R8G8_UNORM,
@@ -722,7 +724,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_LANCZOS_LUT,
-         L"FSR2_LanczosLutData",
+         "FSR2_LanczosLutData",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_READ_ONLY,
          FFX_SURFACE_FORMAT_R16_SNORM,
@@ -733,7 +735,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_BUFFER, sizeof(lanczos2Weights), lanczos2Weights}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_DEFAULT_REACTIVITY,
-         L"FSR2_DefaultReactivityMask",
+         "FSR2_DefaultReactivityMask",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_READ_ONLY,
          FFX_SURFACE_FORMAT_R8_UNORM,
@@ -744,7 +746,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_VALUE, sizeof(uint8_t), 0}},
 
         {FFX_FSR2_RESOURCE_IDENTITIER_UPSAMPLE_MAXIMUM_BIAS_LUT,
-         L"FSR2_MaximumUpsampleBias",
+         "FSR2_MaximumUpsampleBias",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_READ_ONLY,
          FFX_SURFACE_FORMAT_R16_SNORM,
@@ -755,7 +757,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_BUFFER, sizeof(maximumBias), maximumBias}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_INTERNAL_DEFAULT_EXPOSURE,
-         L"FSR2_DefaultExposure",
+         "FSR2_DefaultExposure",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_READ_ONLY,
          FFX_SURFACE_FORMAT_R32G32_FLOAT,
@@ -766,7 +768,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_VALUE, sizeof(float) * 2, 0}},
 
         {FFX_FSR2_RESOURCE_IDENTIFIER_AUTO_EXPOSURE,
-         L"FSR2_AutoExposure",
+         "FSR2_AutoExposure",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R32G32_FLOAT,
@@ -779,7 +781,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
 
         // only one for now, will need ping pong to respect the motion vectors
         {FFX_FSR2_RESOURCE_IDENTIFIER_AUTOREACTIVE,
-         L"FSR2_AutoReactive",
+         "FSR2_AutoReactive",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R8_UNORM,
@@ -790,7 +792,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
         
         {FFX_FSR2_RESOURCE_IDENTIFIER_AUTOCOMPOSITION,
-         L"FSR2_AutoComposition",
+         "FSR2_AutoComposition",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R8_UNORM,
@@ -801,7 +803,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
         
         {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_PRE_ALPHA_COLOR_1,
-         L"FSR2_PrevPreAlpha0",
+         "FSR2_PrevPreAlpha0",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R11G11B10_FLOAT,
@@ -812,7 +814,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
         
         {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_POST_ALPHA_COLOR_1,
-         L"FSR2_PrevPostAlpha0",
+         "FSR2_PrevPostAlpha0",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R11G11B10_FLOAT,
@@ -823,7 +825,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
         
         {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_PRE_ALPHA_COLOR_2,
-         L"FSR2_PrevPreAlpha1",
+         "FSR2_PrevPreAlpha1",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R11G11B10_FLOAT,
@@ -834,7 +836,7 @@ static FfxErrorCode fsr2Create(FfxFsr2Context_Private* context, const FfxFsr2Con
          {FFX_RESOURCE_INIT_DATA_TYPE_UNINITIALIZED}},
         
         {FFX_FSR2_RESOURCE_IDENTIFIER_PREV_POST_ALPHA_COLOR_2,
-         L"FSR2_PrevPostAlpha1",
+         "FSR2_PrevPostAlpha1",
          FFX_RESOURCE_TYPE_TEXTURE2D,
          FFX_RESOURCE_USAGE_UAV,
          FFX_SURFACE_FORMAT_R11G11B10_FLOAT,
@@ -975,7 +977,7 @@ static void setupDeviceDepthToViewSpaceDepthParams(FfxFsr2Context_Private* conte
 static void scheduleDispatch(FfxFsr2Context_Private* context, const FfxFsr2DispatchDescription*, const FfxPipelineState* pipeline, uint32_t dispatchX, uint32_t dispatchY)
 {
     FfxGpuJobDescription dispatchJob = {FFX_GPU_JOB_COMPUTE};
-    wcscpy_s(dispatchJob.jobLabel, pipeline->name);
+    strcpy(dispatchJob.jobLabel, pipeline->name);
 
     for (uint32_t currentShaderResourceViewIndex = 0; currentShaderResourceViewIndex < pipeline->srvTextureCount; ++currentShaderResourceViewIndex) {
 
@@ -983,7 +985,7 @@ static void scheduleDispatch(FfxFsr2Context_Private* context, const FfxFsr2Dispa
         const FfxResourceInternal currentResource = context->srvResources[currentResourceId];
         dispatchJob.computeJobDescriptor.srvTextures[currentShaderResourceViewIndex].resource = currentResource;
 #ifdef FFX_DEBUG
-        wcscpy_s(dispatchJob.computeJobDescriptor.srvTextures[currentShaderResourceViewIndex].name,
+        strcpy(dispatchJob.computeJobDescriptor.srvTextures[currentShaderResourceViewIndex].name,
                  pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
 #endif
     }
@@ -992,7 +994,7 @@ static void scheduleDispatch(FfxFsr2Context_Private* context, const FfxFsr2Dispa
 
         const uint32_t currentResourceId = pipeline->uavTextureBindings[currentUnorderedAccessViewIndex].resourceIdentifier;
 #ifdef FFX_DEBUG
-        wcscpy_s(dispatchJob.computeJobDescriptor.uavTextures[currentUnorderedAccessViewIndex].name,
+        strcpy(dispatchJob.computeJobDescriptor.uavTextures[currentUnorderedAccessViewIndex].name,
                  pipeline->uavTextureBindings[currentUnorderedAccessViewIndex].name);
 #endif
         if (currentResourceId >= FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_0 && currentResourceId <= FFX_FSR2_RESOURCE_IDENTIFIER_SCENE_LUMINANCE_MIPMAP_12)
@@ -1017,7 +1019,7 @@ static void scheduleDispatch(FfxFsr2Context_Private* context, const FfxFsr2Dispa
 
     for (uint32_t currentRootConstantIndex = 0; currentRootConstantIndex < pipeline->constCount; ++currentRootConstantIndex) {
 #ifdef FFX_DEBUG
-        wcscpy_s(dispatchJob.computeJobDescriptor.cbNames[currentRootConstantIndex], pipeline->constantBufferBindings[currentRootConstantIndex].name);
+        strcpy(dispatchJob.computeJobDescriptor.cbNames[currentRootConstantIndex], pipeline->constantBufferBindings[currentRootConstantIndex].name);
 #endif
         dispatchJob.computeJobDescriptor.cbs[currentRootConstantIndex] = context->constantBuffers[pipeline->constantBufferBindings[currentRootConstantIndex].resourceIdentifier];
     }
@@ -1039,7 +1041,7 @@ static FfxErrorCode fsr2Dispatch(FfxFsr2Context_Private* context, const FfxFsr2D
     if (context->firstExecution)
     {
         FfxGpuJobDescription clearJob = { FFX_GPU_JOB_CLEAR_FLOAT };
-        wcscpy_s(clearJob.jobLabel, L"Zero initialize resource");
+        strcpy(clearJob.jobLabel, "Zero initialize resource");
 
         const float clearValuesToZeroFloat[]{ 0.f, 0.f, 0.f, 0.f };
         memcpy(clearJob.clearJobDescriptor.color, clearValuesToZeroFloat, 4 * sizeof(float));
@@ -1212,7 +1214,7 @@ static FfxErrorCode fsr2Dispatch(FfxFsr2Context_Private* context, const FfxFsr2D
     if (resetAccumulation) {
 
         FfxGpuJobDescription clearJob = { FFX_GPU_JOB_CLEAR_FLOAT };
-        wcscpy_s(clearJob.jobLabel, L"Zero initialize resource");
+        strcpy(clearJob.jobLabel, "Zero initialize resource");
         // LockStatus resource has no sign bit, callback functions are compensating for this.
         // Clearing the resource must follow the same logic.
         float clearValuesLockStatus[4]{};
@@ -1529,9 +1531,9 @@ FfxErrorCode ffxFsr2ContextGenerateReactiveMask(FfxFsr2Context* context, const F
     jobDescriptor.uavTextures[0].resource = contextPrivate->uavResources[FFX_FSR2_RESOURCE_IDENTIFIER_AUTOREACTIVE];
 
 #ifdef FFX_DEBUG
-    wcscpy_s(jobDescriptor.srvTextures[0].name, pipeline->srvTextureBindings[0].name);
-    wcscpy_s(jobDescriptor.srvTextures[1].name, pipeline->srvTextureBindings[1].name);
-    wcscpy_s(jobDescriptor.uavTextures[0].name, pipeline->uavTextureBindings[0].name);
+    strcpy(jobDescriptor.srvTextures[0].name, pipeline->srvTextureBindings[0].name);
+    strcpy(jobDescriptor.srvTextures[1].name, pipeline->srvTextureBindings[1].name);
+    strcpy(jobDescriptor.uavTextures[0].name, pipeline->uavTextureBindings[0].name);
 #endif
 
     jobDescriptor.dimensions[0] = dispatchSrcX;
@@ -1545,7 +1547,7 @@ FfxErrorCode ffxFsr2ContextGenerateReactiveMask(FfxFsr2Context* context, const F
         const FfxResourceInternal currentResource = contextPrivate->srvResources[currentResourceId];
         jobDescriptor.srvTextures[currentShaderResourceViewIndex].resource = currentResource;
 #ifdef FFX_DEBUG
-        wcscpy_s(jobDescriptor.srvTextures[currentShaderResourceViewIndex].name, pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
+        strcpy(jobDescriptor.srvTextures[currentShaderResourceViewIndex].name, pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
 #endif
     }
 
@@ -1560,10 +1562,10 @@ FfxErrorCode ffxFsr2ContextGenerateReactiveMask(FfxFsr2Context* context, const F
                                                                                       sizeof(constants),
                                                                                       &jobDescriptor.cbs[0]);
 #ifdef FFX_DEBUG
-    wcscpy_s(jobDescriptor.cbNames[0], pipeline->constantBufferBindings[0].name);
+    strcpy(jobDescriptor.cbNames[0], pipeline->constantBufferBindings[0].name);
 #endif
     FfxGpuJobDescription dispatchJob = { FFX_GPU_JOB_COMPUTE };
-    wcscpy_s(dispatchJob.jobLabel, pipeline->name);
+    strcpy(dispatchJob.jobLabel, pipeline->name);
     dispatchJob.computeJobDescriptor = jobDescriptor;
 
     //contextPrivate->contextDescription.backendInterface.fpScheduleGpuJob(&contextPrivate->contextDescription.backendInterface, &dispatchJob);
@@ -1598,10 +1600,10 @@ static FfxErrorCode generateReactiveMaskInternal(FfxFsr2Context_Private* context
     jobDescriptor.uavTextures[3].resource = contextPrivate->uavResources[FFX_FSR2_RESOURCE_IDENTIFIER_PREV_POST_ALPHA_COLOR];
 
 #ifdef FFX_DEBUG
-    wcscpy_s(jobDescriptor.uavTextures[0].name, pipeline->uavTextureBindings[0].name);
-    wcscpy_s(jobDescriptor.uavTextures[1].name, pipeline->uavTextureBindings[1].name);
-    wcscpy_s(jobDescriptor.uavTextures[2].name, pipeline->uavTextureBindings[2].name);
-    wcscpy_s(jobDescriptor.uavTextures[3].name, pipeline->uavTextureBindings[3].name);
+    strcpy(jobDescriptor.uavTextures[0].name, pipeline->uavTextureBindings[0].name);
+    strcpy(jobDescriptor.uavTextures[1].name, pipeline->uavTextureBindings[1].name);
+    strcpy(jobDescriptor.uavTextures[2].name, pipeline->uavTextureBindings[2].name);
+    strcpy(jobDescriptor.uavTextures[3].name, pipeline->uavTextureBindings[3].name);
 #endif
 
     jobDescriptor.dimensions[0] = dispatchSrcX;
@@ -1615,20 +1617,20 @@ static FfxErrorCode generateReactiveMaskInternal(FfxFsr2Context_Private* context
         const FfxResourceInternal currentResource = contextPrivate->srvResources[currentResourceId];
         jobDescriptor.srvTextures[currentShaderResourceViewIndex].resource = currentResource;
 #ifdef FFX_DEBUG
-        wcscpy_s(jobDescriptor.srvTextures[currentShaderResourceViewIndex].name, pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
+        strcpy(jobDescriptor.srvTextures[currentShaderResourceViewIndex].name, pipeline->srvTextureBindings[currentShaderResourceViewIndex].name);
 #endif
     }
 
     for (uint32_t currentRootConstantIndex = 0; currentRootConstantIndex < pipeline->constCount; ++currentRootConstantIndex) {
 #ifdef FFX_DEBUG
-        wcscpy_s(jobDescriptor.cbNames[currentRootConstantIndex], pipeline->constantBufferBindings[currentRootConstantIndex].name);
+        strcpy(jobDescriptor.cbNames[currentRootConstantIndex], pipeline->constantBufferBindings[currentRootConstantIndex].name);
 #endif
         jobDescriptor.cbs[currentRootConstantIndex] = contextPrivate->constantBuffers[pipeline->constantBufferBindings[currentRootConstantIndex].resourceIdentifier];
         //jobDescriptor.cbSlotIndex[currentRootConstantIndex] = pipeline->constantBufferBindings[currentRootConstantIndex].slotIndex;
     }
 
     FfxGpuJobDescription dispatchJob = { FFX_GPU_JOB_COMPUTE };
-    wcscpy_s(dispatchJob.jobLabel, pipeline->name);
+    strcpy(dispatchJob.jobLabel, pipeline->name);
     dispatchJob.computeJobDescriptor = jobDescriptor;
 
     contextPrivate->contextDescription.backendInterface.fpScheduleGpuJob(&contextPrivate->contextDescription.backendInterface, &dispatchJob);

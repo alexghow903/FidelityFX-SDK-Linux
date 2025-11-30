@@ -28,6 +28,7 @@
 
 #include <FidelityFX/host/ffx_assert.h>
 #include <unistd.h>
+#include <vulkan/vulkan_core.h>
 
 ///////////////////////////////////////////////////////////////////
 //                    MODES EXPLAINED
@@ -336,7 +337,7 @@ bool waitForSemaphoreValue(VkDevice device, VkSemaphore semaphore, uint64_t valu
                 while (res == VK_TIMEOUT)
                 {
                     res = vkWaitSemaphores(device, &waitInfo, waitIntervalInNanoSeconds);
-                    waitCallback(L"FenceName", value);
+                    waitCallback("FenceName", value);
                 }
             }
             else
@@ -661,7 +662,7 @@ FfxErrorCode ffxConfigureFrameInterpolationSwapchainVK(FfxSwapchain gameSwapChai
         switch (key)
         {
             case FFX_FI_SWAPCHAIN_CONFIGURE_KEY_WAITCALLBACK:
-                pSwapChainVK->setWaitCallback(static_cast<FfxWaitCallbackFunc>(valuePtr));
+                pSwapChainVK->setWaitCallback(reinterpret_cast<FfxWaitCallbackFunc>(valuePtr));
             break;
             case FFX_FI_SWAPCHAIN_CONFIGURE_KEY_FRAMEPACINGTUNING:
                 if (valuePtr != nullptr)
@@ -773,9 +774,9 @@ VkResult presentToSwapChain(FrameinterpolationPresentInfo* pPresenter, uint32_t 
     presentInfoKHR.pImageIndices      = &imageIndex;
     presentInfoKHR.pResults           = nullptr;  // Optional
 
-    EnterCriticalSection(&pPresenter->swapchainCriticalSection);
+    pthread_mutex_lock(&pPresenter->swapchainCriticalSection);
     VkResult res = vkQueuePresentKHR(pPresenter->presentQueue.queue, &presentInfoKHR);
-    LeaveCriticalSection(&pPresenter->swapchainCriticalSection);
+    pthread_mutex_unlock(&pPresenter->swapchainCriticalSection);
 
     ++(pPresenter->realPresentCount);
     return res;
@@ -936,7 +937,7 @@ VkResult compositeSwapChainFrame(FrameinterpolationPresentInfo* pPresenter,
     }
 }
 
-DWORD copyAndPresent_presenterThread(void* pParam)
+void* copyAndPresent_presenterThread(void* pParam)
 {
     FrameinterpolationPresentInfo* presenter = static_cast<FrameinterpolationPresentInfo*>(pParam);
 
@@ -947,16 +948,18 @@ DWORD copyAndPresent_presenterThread(void* pParam)
 
         while (!presenter->shutdown)
         {
-            WaitForSingleObject(presenter->pacerEvent, INFINITE);
+            pthread_mutex_lock(&presenter->pacerEventMutex);
+            pthread_cond_wait(&presenter->pacerEventCond, &presenter->pacerEventMutex);
+            pthread_mutex_unlock(&presenter->pacerEventMutex);
 
             if (!presenter->shutdown)
             {
-                EnterCriticalSection(&presenter->scheduledFrameCriticalSection);
+                pthread_mutex_lock(&presenter->scheduledFrameCriticalSection);
 
                 PacingData entry = presenter->scheduledPresents;
                 presenter->scheduledPresents.invalidate();
 
-                LeaveCriticalSection(&presenter->scheduledFrameCriticalSection);
+                pthread_mutex_unlock(&presenter->scheduledFrameCriticalSection);
 
                 if (entry.numFramesToPresent > 0)
                 {
@@ -1050,7 +1053,9 @@ DWORD copyAndPresent_presenterThread(void* pParam)
                                 res = presentCommandList->execute(toWait, toSignal);
 
                                 waitForPerformanceCount(previousPresentQpc + frameInfo.presentQpcDelta);
-                                QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&previousPresentQpc));
+                                timespec ts;
+                                clock_gettime(CLOCK_MONOTONIC, &ts);
+                                previousPresentQpc = static_cast<uint64_t>(ts.tv_sec) * 1'000'000'000ULL + ts.tv_nsec;
 
                                 res = presentToSwapChain(presenter, imageIndex, imageIndex);
                                 // VK_SUBOPTIMAL_KHR & VK_ERROR_OUT_OF_DATE_KHR: the swapchain has been recreated
@@ -1081,7 +1086,7 @@ DWORD copyAndPresent_presenterThread(void* pParam)
 }
 
 
-DWORD composeAndPresent_presenterThread(void* pParam)
+void* composeAndPresent_presenterThread(void* pParam)
 {
     FrameinterpolationPresentInfo* presenter = static_cast<FrameinterpolationPresentInfo*>(pParam);
 
@@ -1092,16 +1097,20 @@ DWORD composeAndPresent_presenterThread(void* pParam)
 
         while (!presenter->shutdown)
         {
-            WaitForSingleObject(presenter->pacerEvent, INFINITE);
+            pthread_mutex_lock(&presenter->presentEventMutex);
+            while (!presenter->presentEventSignaled) {
+                pthread_cond_wait(&presenter->presentEventCond, &presenter->presentEventMutex);
+            }
+            pthread_mutex_unlock(&presenter->presentEventMutex);
 
             if (!presenter->shutdown)
             {
-                EnterCriticalSection(&presenter->scheduledFrameCriticalSection);
+                pthread_mutex_lock(&presenter->scheduledFrameCriticalSection);
 
                 PacingData entry = presenter->scheduledPresents;
                 presenter->scheduledPresents.invalidate();
 
-                LeaveCriticalSection(&presenter->scheduledFrameCriticalSection);
+                pthread_mutex_unlock(&presenter->scheduledFrameCriticalSection);
 
                 if (entry.numFramesToPresent > 0)
                 {
@@ -1162,7 +1171,9 @@ DWORD composeAndPresent_presenterThread(void* pParam)
                                 FFX_ASSERT_MESSAGE_FORMAT(res == VK_SUCCESS, "compositeSwapChainFrame failed with error %d", res);
 
                                 waitForPerformanceCount(previousPresentQpc + frameInfo.presentQpcDelta);
-                                QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&previousPresentQpc));
+                                timespec ts;
+                                clock_gettime(CLOCK_MONOTONIC, &ts);
+                                previousPresentQpc = static_cast<uint64_t>(ts.tv_sec) * 1'000'000'000ULL + ts.tv_nsec;
 
                                 res = presentToSwapChain(presenter, realSwapchainImageIndex);
                                 // VK_SUBOPTIMAL_KHR & VK_ERROR_OUT_OF_DATE_KHR: the swapchain has been recreated
@@ -1185,7 +1196,8 @@ DWORD composeAndPresent_presenterThread(void* pParam)
                     // if no frame was presented, we still need to update the semaphore
                     if (toWait.count > 0)
                     {
-                        presenter->presentQueue.submit(VK_NULL_HANDLE, toWait, SubmissionSemaphores());
+                        SubmissionSemaphores dummySignal;
+                        presenter->presentQueue.submit(VK_NULL_HANDLE, toWait, dummySignal);
                     }
 
                     numFramesSentForPresentation = entry.numFramesSentForPresentationBase + entry.numFramesToPresent;
@@ -1199,59 +1211,71 @@ DWORD composeAndPresent_presenterThread(void* pParam)
     return 0;
 }
 
-DWORD interpolationThread(void* param)
+void* interpolationThread(void* param)
 {
     FrameinterpolationPresentInfo* presenter = static_cast<FrameinterpolationPresentInfo*>(param);
+    int64_t qpcFrequency = 1'000'000'000ULL;
 
     if (presenter)
     {
-        HANDLE presenterThreadHandle = NULL;
+        pthread_t presenterThreadHandle = NULL;
         if (presenter->compositionMode == FGSwapchainCompositionMode::eComposeOnPresentQueue)
         {
-            presenterThreadHandle = CreateThread(nullptr, 0, composeAndPresent_presenterThread, param, 0, nullptr);
+            pthread_create(&presenterThreadHandle, nullptr, composeAndPresent_presenterThread, param);
         }
         else if (presenter->compositionMode == FGSwapchainCompositionMode::eComposeOnGameQueue)
         {
-            presenterThreadHandle = CreateThread(nullptr, 0, copyAndPresent_presenterThread, param, 0, nullptr);
+            pthread_create(&presenterThreadHandle, nullptr, copyAndPresent_presenterThread, param);
         }
         
         FFX_ASSERT(presenterThreadHandle != NULL);
 
         if (presenterThreadHandle != 0)
         {
-            SetThreadPriority(presenterThreadHandle, THREAD_PRIORITY_HIGHEST);
-            SetThreadDescription(presenterThreadHandle, L"AMD FSR Presenter Thread");
+            int policy = SCHED_RR;
+            sched_param sp;
+            sp.sched_priority = sched_get_priority_max(policy);
+            pthread_setschedparam(presenterThreadHandle, policy, &sp);
+            pthread_setname_np(presenterThreadHandle, "AMD FSR Presenter Thread");
 
             SimpleMovingAverage<10, double> frameTime{};
             int64_t previousQpc = 0;
 
             while (!presenter->shutdown)
             {
-                WaitForSingleObject(presenter->presentEvent, INFINITE);
+                pthread_mutex_lock(&presenter->presentEventMutex);
+                while (!presenter->presentEventSignaled) {
+                    pthread_cond_wait(&presenter->presentEventCond, &presenter->presentEventMutex);
+                }
+                pthread_mutex_unlock(&presenter->presentEventMutex);
 
                 if (!presenter->shutdown)
                 {
-                    EnterCriticalSection(&presenter->scheduledFrameCriticalSection);
+                    pthread_mutex_lock(&presenter->scheduledFrameCriticalSection);
 
                     PacingData entry = presenter->scheduledInterpolations;
                     presenter->scheduledInterpolations.invalidate();
 
-                    LeaveCriticalSection(&presenter->scheduledFrameCriticalSection);
+                    pthread_mutex_unlock(&presenter->scheduledFrameCriticalSection);
 
                     waitForSemaphoreValue(presenter->device,
                                           presenter->interpolationSemaphore,
                                           entry.frames[PacingData::FrameType::Interpolated_1].interpolationCompletedSemaphoreValue);
-                    SetEvent(presenter->interpolationEvent); // unlocks the queuePresent method
+                    // unlocks the queuePresent method
+                    pthread_mutex_lock(&presenter->interpolationEventMutex);
+                    presenter->interpolationEventSignaled = true;
+                    pthread_cond_broadcast(&presenter->interpolationEventCond); // wake all waiters
+                    pthread_mutex_unlock(&presenter->interpolationEventMutex);
 
                     int64_t currentQpc = 0;
-                    QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&currentQpc));
-
+                    // QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&currentQpc));
+                    timespec ts;
+                    clock_gettime(CLOCK_MONOTONIC, &ts);
+                    currentQpc = static_cast<uint64_t>(ts.tv_sec) * 1'000'000'000ULL + ts.tv_nsec;
                     const double deltaQpc = double(currentQpc - previousQpc) * (previousQpc > 0);
                     previousQpc           = currentQpc;
 
                     // reset pacing averaging if delta > 10 fps,
-                    int64_t qpcFrequency;
-                    QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&qpcFrequency));
                     const float fTimeoutInSeconds       = 0.1f;
                     double      deltaQpcResetThreashold = double(qpcFrequency * fTimeoutInSeconds);
                     if ((deltaQpc > deltaQpcResetThreashold) || presenter->resetTimer)
@@ -1271,17 +1295,22 @@ DWORD interpolationThread(void* param)
                     entry.frames[PacingData::FrameType::Real].presentQpcDelta           = deltaToUse;
 
                     // schedule presents
-                    EnterCriticalSection(&presenter->scheduledFrameCriticalSection);
+                    pthread_mutex_lock(&presenter->scheduledFrameCriticalSection);
                     presenter->scheduledPresents = entry;
-                    LeaveCriticalSection(&presenter->scheduledFrameCriticalSection);
-                    SetEvent(presenter->pacerEvent);
+                    pthread_mutex_unlock(&presenter->scheduledFrameCriticalSection);
+                    pthread_mutex_lock(&presenter->pacerEventMutex);
+                    presenter->pacerEventSignaled = true;
+                    pthread_cond_broadcast(&presenter->pacerEventCond);
+                    pthread_mutex_unlock(&presenter->pacerEventMutex);
                 }
             }
 
             // signal event to allow thread to finish
-            SetEvent(presenter->pacerEvent);
-            WaitForSingleObject(presenterThreadHandle, INFINITE);
-            SafeCloseHandle(presenterThreadHandle);
+            pthread_mutex_lock(&presenter->pacerEventMutex);
+            presenter->pacerEventSignaled = true;
+            pthread_cond_broadcast(&presenter->pacerEventCond);
+            pthread_mutex_unlock(&presenter->pacerEventMutex);
+            pthread_join(presenterThreadHandle, nullptr);
         }
     }
 
@@ -1317,20 +1346,20 @@ VkResult FrameInterpolationSwapChainVK::acquireNextImage(VkDevice device, VkSwap
     if (pImageIndex == nullptr)
         return VK_INCOMPLETE;
 
-    EnterCriticalSection(&criticalSection);
+    pthread_mutex_lock(&criticalSection);
 
     *pImageIndex = (uint32_t)(acquiredCount % gameBufferCount);
 
     if (replacementSwapBuffers[*pImageIndex].image == VK_NULL_HANDLE)
     {
-        LeaveCriticalSection(&criticalSection);
+        pthread_mutex_unlock(&criticalSection);
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
     // limit the acquired count
     if (acquiredCount > presentCount && (acquiredCount - presentCount) >= gameBufferCount)
     {
-        LeaveCriticalSection(&criticalSection);
+        pthread_mutex_unlock(&criticalSection);
         return VK_NOT_READY;
     }
 
@@ -1346,7 +1375,7 @@ VkResult FrameInterpolationSwapChainVK::acquireNextImage(VkDevice device, VkSwap
 
     ++acquiredCount;
 
-    LeaveCriticalSection(&criticalSection);
+    pthread_mutex_unlock(&criticalSection);
 
     return res;
 }
@@ -1358,8 +1387,8 @@ struct SwapchainCreationInfo
 
     VkImageCompressionControlEXT             imageCompressionControl;
     VkImageFormatListCreateInfo              imageFormatList;
-    VkSurfaceFullScreenExclusiveInfoEXT      surfaceFullScreenExclusive;
-    VkSurfaceFullScreenExclusiveWin32InfoEXT surfaceFullScreenExclusiveWin32;
+    // VkSurfaceFullScreenExclusiveInfoEXT      surfaceFullScreenExclusive;
+    // VkSurfaceFullScreenExclusiveWin32InfoEXT surfaceFullScreenExclusiveWin32;
     VkSwapchainCounterCreateInfoEXT          swapchainCounter;
     VkSwapchainDisplayNativeHdrCreateInfoAMD swapchainDisplayNativeHdr;
     VkSwapchainPresentModesCreateInfoEXT     swapchainPresentModes;
@@ -1393,14 +1422,14 @@ VkResult getRealSwapchainCreateInfo(const VkSwapchainCreateInfoKHR* pCreateInfo,
         case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
             FFX_USE_PNEXT_AS_IS(imageFormatList, VkImageFormatListCreateInfo);
             break;
-        case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT:
-            realSwapchainCreateInfo.surfaceFullScreenExclusive       = *reinterpret_cast<const VkSurfaceFullScreenExclusiveInfoEXT*>(pCurrent);
-            realSwapchainCreateInfo.surfaceFullScreenExclusive.pNext = const_cast<void*>(realSwapchainCreateInfo.swapchain.pNext);  // because pNext is void* instead of const void* in vulkan header
-            realSwapchainCreateInfo.swapchain.pNext                  = &realSwapchainCreateInfo.surfaceFullScreenExclusive;
-            break;
-        case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT:
-            FFX_USE_PNEXT_AS_IS(surfaceFullScreenExclusiveWin32, VkSurfaceFullScreenExclusiveWin32InfoEXT);
-            break;
+        // case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT:
+        //     realSwapchainCreateInfo.surfaceFullScreenExclusive       = *reinterpret_cast<const VkSurfaceFullScreenExclusiveInfoEXT*>(pCurrent);
+        //     realSwapchainCreateInfo.surfaceFullScreenExclusive.pNext = const_cast<void*>(realSwapchainCreateInfo.swapchain.pNext);  // because pNext is void* instead of const void* in vulkan header
+        //     realSwapchainCreateInfo.swapchain.pNext                  = &realSwapchainCreateInfo.surfaceFullScreenExclusive;
+        //     break;
+        // case VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT:
+        //     FFX_USE_PNEXT_AS_IS(surfaceFullScreenExclusiveWin32, VkSurfaceFullScreenExclusiveWin32InfoEXT);
+        //     break;
         case VK_STRUCTURE_TYPE_SWAPCHAIN_COUNTER_CREATE_INFO_EXT:
             FFX_USE_PNEXT_AS_IS(swapchainCounter, VkSwapchainCounterCreateInfoEXT);
             break;
@@ -1582,14 +1611,20 @@ VkResult FrameInterpolationSwapChainVK::init(const VkSwapchainCreateInfoKHR* pCr
             return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    InitializeCriticalSection(&criticalSection);
-    InitializeCriticalSection(&criticalSectionUpdateConfig);
-    InitializeCriticalSection(&presentInfo.scheduledFrameCriticalSection);
-    InitializeCriticalSection(&presentInfo.swapchainCriticalSection);
+    pthread_mutex_init(&criticalSection, nullptr);
+    pthread_mutex_init(&criticalSectionUpdateConfig, nullptr);
+    pthread_mutex_init(&presentInfo.scheduledFrameCriticalSection, nullptr);
+    pthread_mutex_init(&presentInfo.swapchainCriticalSection, nullptr);
 
-    presentInfo.presentEvent       = CreateEvent(NULL, FALSE, FALSE, TEXT("PresentEvent"));
-    presentInfo.interpolationEvent = CreateEvent(NULL, FALSE, TRUE, TEXT("InterpolationEvent"));
-    presentInfo.pacerEvent         = CreateEvent(NULL, FALSE, FALSE, TEXT("PacerEvent"));
+    pthread_mutex_init(&presentInfo.presentEventMutex, nullptr);
+    pthread_cond_init(&presentInfo.presentEventCond, nullptr);
+    presentInfo.presentEventSignaled    =  false;
+    pthread_mutex_init(&presentInfo.interpolationEventMutex, nullptr);
+    pthread_cond_init(&presentInfo.interpolationEventCond, nullptr);
+    presentInfo.interpolationEventSignaled    =  true;
+    pthread_mutex_init(&presentInfo.pacerEventMutex, nullptr);
+    pthread_cond_init(&presentInfo.pacerEventCond, nullptr);
+    presentInfo.pacerEventSignaled    =  false;
 
     // create the real swapchain
     SwapchainCreationInfo realSwapchainCreateInfo;
@@ -1752,14 +1787,17 @@ void FrameInterpolationSwapChainVK::destroySwapchain(VkDevice device, const VkAl
     presentInfo.presentQueue.reset();
 
     // delete win32 objects
-    DeleteCriticalSection(&criticalSection);
-    DeleteCriticalSection(&criticalSectionUpdateConfig);
-    DeleteCriticalSection(&presentInfo.scheduledFrameCriticalSection);
-    DeleteCriticalSection(&presentInfo.swapchainCriticalSection);
+    pthread_mutex_destroy(&criticalSection);
+    pthread_mutex_destroy(&criticalSectionUpdateConfig);
+    pthread_mutex_destroy(&presentInfo.scheduledFrameCriticalSection);
+    pthread_mutex_destroy(&presentInfo.swapchainCriticalSection);
 
-    SafeCloseHandle(presentInfo.presentEvent);
-    SafeCloseHandle(presentInfo.interpolationEvent);
-    SafeCloseHandle(presentInfo.pacerEvent);
+    pthread_mutex_destroy(&presentInfo.presentEventMutex);
+    pthread_cond_destroy(&presentInfo.presentEventCond);
+    pthread_mutex_destroy(&presentInfo.interpolationEventMutex);
+    pthread_cond_destroy(&presentInfo.interpolationEventCond);
+    pthread_mutex_destroy(&presentInfo.pacerEventMutex);
+    pthread_cond_destroy(&presentInfo.pacerEventCond);
 
     // delete real swapchain
     vkDestroySwapchainKHR(device, presentInfo.realSwapchain, pAllocator);
@@ -1823,7 +1861,7 @@ void FrameInterpolationSwapChainVK::setFrameGenerationConfig(FfxFrameGenerationC
 {
     FFX_ASSERT(config);
 
-    EnterCriticalSection(&criticalSectionUpdateConfig);
+    pthread_mutex_lock(&criticalSectionUpdateConfig);
 
     // if config is a pointer to the internal config ::present called this function to apply the changes
     bool applyChangesNow = (config == &nextFrameGenerationConfig);
@@ -1859,7 +1897,7 @@ void FrameInterpolationSwapChainVK::setFrameGenerationConfig(FfxFrameGenerationC
 
     if (applyChangesNow)
     {
-        EnterCriticalSection(&criticalSection);
+        pthread_mutex_lock(&criticalSection);
 
         currentFrameID          = config->frameID;
         presentInterpolatedOnly = config->onlyPresentInterpolated;
@@ -1902,10 +1940,10 @@ void FrameInterpolationSwapChainVK::setFrameGenerationConfig(FfxFrameGenerationC
             }
         }
 
-        LeaveCriticalSection(&criticalSection);
+        pthread_mutex_unlock(&criticalSection);
     }
 
-    LeaveCriticalSection(&criticalSectionUpdateConfig);
+    pthread_mutex_unlock(&criticalSectionUpdateConfig);
 }
 
 bool FrameInterpolationSwapChainVK::waitForPresents()
@@ -2179,7 +2217,7 @@ VkResult FrameInterpolationSwapChainVK::presentInterpolated(const VkPresentInfoK
     dispatchInterpolationCommands(
         currentBackBufferIndex, &interpolatedFrame, &realFrame, ToWaitInterpolationQueue);
 
-    EnterCriticalSection(&presentInfo.scheduledFrameCriticalSection);
+    pthread_mutex_lock(&presentInfo.scheduledFrameCriticalSection);
 
     PacingData entry{};
     entry.presentCallback                  = presentCallback;
@@ -2235,24 +2273,27 @@ VkResult FrameInterpolationSwapChainVK::presentInterpolated(const VkPresentInfoK
 
     presentInfo.resetTimer              = frameInterpolationResetCondition;
     presentInfo.scheduledInterpolations = entry;
-    LeaveCriticalSection(&presentInfo.scheduledFrameCriticalSection);
+    pthread_mutex_unlock(&presentInfo.scheduledFrameCriticalSection);
 
     // Set event to kick off async CPU present thread
-    SetEvent(presentInfo.presentEvent);
+    pthread_mutex_lock(&presentInfo.presentEventMutex);
+    presentInfo.presentEventSignaled = true;
+    pthread_cond_broadcast(&presentInfo.presentEventCond);
+    pthread_mutex_unlock(&presentInfo.presentEventMutex);
 
     return presentInfo.lastPresentResult.load();
 }
 
 void FrameInterpolationSwapChainVK::registerUiResource(FfxResource uiResource, uint32_t flags)
 {
-    EnterCriticalSection(&criticalSection);
+    pthread_mutex_lock(&criticalSection);
 
     presentInfo.currentUiSurface = uiResource;
     presentInfo.uiCompositionFlags = flags;
     if (nullptr == uiResource.resource)
         presentInfo.uiCompositionFlags &= ~FFX_UI_COMPOSITION_FLAG_ENABLE_INTERNAL_UI_DOUBLE_BUFFERING;
 
-    LeaveCriticalSection(&criticalSection);
+    pthread_mutex_unlock(&criticalSection);
 }
 
 void FrameInterpolationSwapChainVK::setWaitCallback(FfxWaitCallbackFunc waitCallbackFunc)
@@ -2570,9 +2611,9 @@ VkResult FrameInterpolationSwapChainVK::presentNonInterpolatedWithUiCompositionO
 VkResult FrameinterpolationPresentInfo::acquireNextRealImage(uint32_t& imageIndex, VkSemaphore& acquireSemaphore)
 {
     acquireSemaphore = acquireSemaphores[nextAcquireSemaphoreIndex];
-    EnterCriticalSection(&swapchainCriticalSection);
+    pthread_mutex_lock(&swapchainCriticalSection);
     VkResult res = vkAcquireNextImageKHR(device, realSwapchain, UINT64_MAX, acquireSemaphore, VK_NULL_HANDLE, &imageIndex);
-    LeaveCriticalSection(&swapchainCriticalSection);
+    pthread_mutex_unlock(&swapchainCriticalSection);
     
     // only increment on success
     // VK_NOT_READY shouldn't be returned according to the Vulkan spec, as timeout isn't 0
@@ -2597,7 +2638,7 @@ VkResult FrameInterpolationSwapChainVK::queuePresent(VkQueue queue, const VkPres
 
     setFrameGenerationConfig(&nextFrameGenerationConfig);
 
-    EnterCriticalSection(&criticalSection);
+    pthread_mutex_lock(&criticalSection);
 
     uint32_t currentBackBufferIndex = replacementSwapBufferIndex;
 
@@ -2623,7 +2664,11 @@ VkResult FrameInterpolationSwapChainVK::queuePresent(VkQueue queue, const VkPres
 
     if (runInterpolation)
     {
-        WaitForSingleObject(presentInfo.interpolationEvent, INFINITE);
+        pthread_mutex_lock(&presentInfo.interpolationEventMutex);
+        while (&presentInfo.interpolationEventSignaled) {
+            pthread_cond_wait(&presentInfo.interpolationEventCond, &presentInfo.interpolationEventMutex);
+        }
+        pthread_mutex_unlock(&presentInfo.interpolationEventMutex);
 
         res = presentInterpolated(pPresentInfo, currentBackBufferIndex, needUICopy);
     }
@@ -2701,7 +2746,7 @@ VkResult FrameInterpolationSwapChainVK::queuePresent(VkQueue queue, const VkPres
     // update active backbuffer and block when no buffer is available
     replacementSwapBufferIndex = presentCount % gameBufferCount;
 
-    LeaveCriticalSection(&criticalSection);
+    pthread_mutex_unlock(&criticalSection);
 
     waitForSemaphoreValue(
         presentInfo.device, presentInfo.replacementBufferSemaphore, replacementSwapBuffers[replacementSwapBufferIndex].availabilitySemaphoreValue, UINT64_MAX, presentInfo.waitCallback);
@@ -2714,16 +2759,22 @@ bool FrameInterpolationSwapChainVK::spawnPresenterThread()
     if (interpolationThreadHandle == NULL)
     {
         presentInfo.shutdown = false;
-        interpolationThreadHandle = CreateThread(nullptr, 0, interpolationThread, reinterpret_cast<void*>(&presentInfo), 0, nullptr);
+        pthread_create(&interpolationThreadHandle, nullptr, interpolationThread, reinterpret_cast<void*>(&presentInfo));
         FFX_ASSERT(interpolationThreadHandle != NULL);
 
         if (interpolationThreadHandle != 0)
         {
-            SetThreadPriority(interpolationThreadHandle, THREAD_PRIORITY_HIGHEST);
-            SetThreadDescription(interpolationThreadHandle, L"AMD FSR Interpolation Thread");
+            int policy = SCHED_RR;
+            sched_param sp;
+            sp.sched_priority = sched_get_priority_max(policy);
+            pthread_setschedparam(interpolationThreadHandle, policy, &sp);
+            pthread_setname_np(interpolationThreadHandle, "AMD FSR Interpolation Thread");
         }
 
-        SetEvent(presentInfo.interpolationEvent);
+        pthread_mutex_lock(&presentInfo.interpolationEventMutex);
+        presentInfo.interpolationEventSignaled = true;
+        pthread_cond_broadcast(&presentInfo.interpolationEventCond);
+        pthread_mutex_unlock(&presentInfo.interpolationEventMutex);
     }
 
     return interpolationThreadHandle != NULL;
@@ -2737,9 +2788,11 @@ bool FrameInterpolationSwapChainVK::killPresenterThread()
         presentInfo.shutdown = true;
 
         // signal event to allow thread to finish
-        SetEvent(presentInfo.presentEvent);
-        WaitForSingleObject(interpolationThreadHandle, INFINITE);
-        SafeCloseHandle(interpolationThreadHandle);
+        pthread_mutex_lock(&presentInfo.presentEventMutex);
+        presentInfo.presentEventSignaled = true;
+        pthread_cond_broadcast(&presentInfo.presentEventCond);
+        pthread_mutex_unlock(&presentInfo.presentEventMutex);
+        pthread_join(interpolationThreadHandle, nullptr);
     }
 
     return interpolationThreadHandle == NULL;
@@ -2763,7 +2816,7 @@ uint64_t FrameInterpolationSwapChainVK::getLastPresentCount()
 
 VkCommandBuffer FrameInterpolationSwapChainVK::getInterpolationCommandList()
 {
-    EnterCriticalSection(&criticalSection);
+    pthread_mutex_lock(&criticalSection);
 
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
@@ -2789,7 +2842,7 @@ VkCommandBuffer FrameInterpolationSwapChainVK::getInterpolationCommandList()
         registeredInterpolationCommandLists[currentBackBufferIndex] = registeredCommands;
     }
 
-    LeaveCriticalSection(&criticalSection);
+    pthread_mutex_unlock(&criticalSection);
 
     return commandBuffer;
 }
@@ -2824,7 +2877,8 @@ VkResult FrameInterpolationSwapChainVK::submitCompositionOnGameQueue(const Pacin
         // if no frame was presented, we still need to update the semaphore
         if (toWait.count > 0)
         {
-            res = presentInfo.gameQueue.submit(VK_NULL_HANDLE, toWait, SubmissionSemaphores());
+            SubmissionSemaphores dummySignal;
+            res = presentInfo.gameQueue.submit(VK_NULL_HANDLE, toWait, dummySignal);
         }
     }
 

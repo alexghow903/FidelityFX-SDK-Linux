@@ -27,6 +27,7 @@
 #include <FidelityFX/host/ffx_assert.h>
 #include <FidelityFX/host/backends/vk/ffx_vk.h>
 #include <iostream>
+#include <cmath>
 
 #ifndef _countof
 #define _countof(arr) (sizeof(arr) / sizeof((arr)[0]))
@@ -270,21 +271,21 @@ class VulkanCommandPool
 {
 public:
 private:
-    CRITICAL_SECTION criticalSection                 = {};
+    pthread_mutex_t  criticalSection;
     uint32_t         queueFamilyIndices[NumFamilies] = {};
     VkCommands       buffer[NumFamilies][Capacity]   = {};
 
 public:
     VulkanCommandPool()
     {
-        InitializeCriticalSection(&criticalSection);
+        pthread_mutex_init(&criticalSection, nullptr);
         for (size_t familyIndex = 0; familyIndex < NumFamilies; familyIndex++)
             queueFamilyIndices[familyIndex] = UINT32_MAX;
     }
 
     ~VulkanCommandPool()
     {
-        EnterCriticalSection(&criticalSection);
+        pthread_mutex_lock(&criticalSection);
 
         for (size_t familyIndex = 0; familyIndex < NumFamilies; familyIndex++)
         {
@@ -301,14 +302,14 @@ public:
             queueFamilyIndices[familyIndex] = UINT32_MAX;
         }
 
-        LeaveCriticalSection(&criticalSection);
+        pthread_mutex_unlock(&criticalSection);
 
-        DeleteCriticalSection(&criticalSection);
+        pthread_mutex_destroy(&criticalSection);
     }
 
     VkCommands* get(VkDevice device, VulkanQueue queue, const char* name)
     {
-        EnterCriticalSection(&criticalSection);
+        pthread_mutex_lock(&criticalSection);
 
         uint32_t familyIndex = 0;
         // find family index
@@ -342,7 +343,7 @@ public:
 
         pCommands->occupy(queue, name);
 
-        LeaveCriticalSection(&criticalSection);
+        pthread_mutex_unlock(&criticalSection);
 
         return pCommands;
     }

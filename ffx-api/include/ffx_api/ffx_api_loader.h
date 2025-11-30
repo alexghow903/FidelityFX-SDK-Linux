@@ -23,7 +23,7 @@
 #pragma once
 
 #include "ffx_api.h"
-#include <windows.h>
+#include <dlfcn.h>
 
 typedef struct ffxFunctions {
     PfnFfxCreateContext CreateContext;
@@ -33,11 +33,11 @@ typedef struct ffxFunctions {
     PfnFfxDispatch Dispatch;
 } ffxFunctions;
 
-static inline void ffxLoadFunctions(ffxFunctions* pOutFunctions, HMODULE module)
+static inline void ffxLoadFunctions(ffxFunctions* pOutFunctions, void* module)
 {
-    pOutFunctions->CreateContext  = (PfnFfxCreateContext )GetProcAddress(module, "ffxCreateContext");
-    pOutFunctions->DestroyContext = (PfnFfxDestroyContext)GetProcAddress(module, "ffxDestroyContext");
-    pOutFunctions->Configure      = (PfnFfxConfigure     )GetProcAddress(module, "ffxConfigure");
-    pOutFunctions->Query          = (PfnFfxQuery         )GetProcAddress(module, "ffxQuery");
-    pOutFunctions->Dispatch       = (PfnFfxDispatch      )GetProcAddress(module, "ffxDispatch");
+    pOutFunctions->CreateContext  = (PfnFfxCreateContext )dlsym(module, "ffxCreateContext");
+    pOutFunctions->DestroyContext = (PfnFfxDestroyContext)dlsym(module, "ffxDestroyContext");
+    pOutFunctions->Configure      = (PfnFfxConfigure     )dlsym(module, "ffxConfigure");
+    pOutFunctions->Query          = (PfnFfxQuery         )dlsym(module, "ffxQuery");
+    pOutFunctions->Dispatch       = (PfnFfxDispatch      )dlsym(module, "ffxDispatch");
 }
