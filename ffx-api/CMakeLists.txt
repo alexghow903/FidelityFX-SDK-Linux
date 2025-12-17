@@ -141,7 +141,7 @@ set(FFX_AUTO_COMPILE_SHADERS ON)
 set(FFX_BUILD_AS_DLL ON)
 add_subdirectory(../sdk sdk)
 
-target_link_libraries(amd_fidelityfx_${FFX_PLATFORM_NAME} PRIVATE ffx_fsr2_${FFX_PLATFORM_NAME} ffx_fsr3upscaler_${FFX_PLATFORM_NAME} ffx_opticalflow_${FFX_PLATFORM_NAME})
+target_link_libraries(amd_fidelityfx_${FFX_PLATFORM_NAME} PRIVATE ffx_fsr2_${FFX_PLATFORM_NAME} ffx_fsr3upscaler_${FFX_PLATFORM_NAME} ffx_opticalflow_${FFX_PLATFORM_NAME} ffx_frameinterpolation_${FFX_PLATFORM_NAME})
 if (FFX_API_BACKEND STREQUAL VK)
 	find_package(Vulkan REQUIRED)
 	target_link_libraries(amd_fidelityfx_${FFX_PLATFORM_NAME} PRIVATE Vulkan::Headers ffx_backend_vk)
